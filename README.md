@@ -1,25 +1,36 @@
-# zjacko.com — LinkedIn posts feed server
+# zjacko.com — site + LinkedIn posts feed
 
-A small, self-hosted Node.js / Express backend that **pulls your LinkedIn
-posts** and shows them on `linkedin.html` — read-only by design. There is
-no endpoint (and no code path) that can create, edit, or delete anything
-on LinkedIn.
+The zjacko.com website, plus a small self-hosted Node.js / Express server
+for local development.
 
-It also serves the static site itself, so the site and the API share one
-origin — that's what keeps the site's strict CSP (`connect-src 'self'`)
-intact.
+**The LinkedIn feed is a local, read-only clone.** `linkedin.html` renders
+your posts from `data/posts.json` — a file you sync from LinkedIn's own
+official "Download your data" export, or add to one post at a time. It
+works on any host, needs no LinkedIn app, no API keys, and no server in
+production — and there is no code path anywhere that can create, edit,
+or delete anything on LinkedIn. See [Keeping the feed in sync](#keeping-the-feed-in-sync).
+
+The optional Node server serves the static site (so the page CSP's
+`connect-src 'self'` is easy to keep intact during development) and can
+also power a one-click OAuth Connect that syncs your live LinkedIn name
+and profile picture onto the profile card. See
+[Connecting your LinkedIn (one click)](#connecting-your-linkedin-one-click).
 
 ```
 zjacko/                      ← site root (static files, unchanged)
-├── server.js                ← Express backend (this server)
+├── server.js                ← Express dev server (optional)
 ├── package.json             ← deps: express, cors, dotenv
 ├── .env.example             ← template for secrets
 ├── .env                     ← your real secrets (never commit/upload)
 ├── linkedin.html            ← page with the profile card + posts feed
 ├── connect.html             ← owner-only page: one-click LinkedIn Connect
-├── data/linkedin.json       ← profile data for the card (fallback)
+├── data/linkedin.json       ← profile data for the card
+├── data/posts.json          ← your LinkedIn posts (the feed itself)
+├── assets/linkedin/         ← images attached to posts (local, CSP-safe)
 ├── private/                 ← OAuth token from Connect (created on demand,
 │                               never served, gitignored)
+├── tools/import-shares.js   ← sync posts from LinkedIn's data export
+├── tools/add-post.js        ← add a single post
 ├── tools/mock-linkedin.js   ← mock LinkedIn server for offline testing
 ├── assets/js/linkedin-card.js    ← profile card component
 ├── assets/js/linkedin-posts.js  ← posts feed component (read-only)
@@ -34,54 +45,134 @@ zjacko/                      ← site root (static files, unchanged)
 # 1. Requires Node.js 18+
 npm install
 
-# 2. Create your config
-copy .env.example .env
-
-# 3. Fill in LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET and
-#    LINKEDIN_ADMIN_KEY (one-time LinkedIn app setup — see the next
-#    section)
-
-# 4. Start the server
+# 2. Start the dev server (serves the whole site at one origin)
 npm start
 
-# 5. Open http://localhost:3000/connect.html once and click
-#    "Connect LinkedIn" (log in as yourself, click Allow)
-
-# 6. Open the site it serves:
+# 3. Open the site:
 #    http://localhost:3000/linkedin.html
-#    → profile card + "Recent posts" feed pulled from LinkedIn
+#    → profile card + "Recent posts" feed, both rendered from
+#      local JSON files — works right now, no LinkedIn setup needed
 ```
 
-While the server runs, it serves the whole website at `http://localhost:3000`
-exactly like your host does, plus the API endpoints below. Stop it with
-`Ctrl+C`. For auto-restart during development: `npm run dev`.
+Stop it with `Ctrl+C`. For auto-restart during development: `npm run dev`.
+(You can also serve the folder with any static web server — the site
+itself is fully static; the feed reads `data/posts.json`.)
 
 ## How it works
 
-1. The browser loads `linkedin.html` (served by this server, same origin).
-2. `<linkedin-posts>` fetches `/api/linkedin/posts` — a relative path, so
-   the page CSP's `connect-src 'self'` stays valid.
-3. The server checks its in-memory cache. On a miss it calls LinkedIn's
-   Posts API:
-   `GET https://api.linkedin.com/rest/posts?q=author&author={your URN}&count=10&sortBy=LAST_MODIFIED`
-   with your token from `.env`, maps the response down to plain text +
-   timestamps + permalinks + proxied image URLs, caches it for
-   `FEED_CACHE_SECONDS` (default 15 minutes), and returns it.
-4. In the same refresh it calls LinkedIn's userinfo endpoint
-   (`/v2/userinfo`, OpenID Connect) for your live name and profile
-   picture — the feed shows an avatar + name + relative time on every
-   post, just like LinkedIn does. (If userinfo fails, posts still
-   render without the author header.)
-5. Images (post photos, article thumbnails, your profile picture) are
-   **never loaded from LinkedIn directly** — the CSP's `img-src 'self'`
-   would block that by design. Instead the server returns
-   `/api/linkedin/media?src=…` URLs, which proxy the bytes from
-   LinkedIn's CDN (media.licdn.com) through this origin.
-6. The component renders each post using `textContent` only — post text
-   can never inject HTML into the page. `https://` links inside post
-   text become real links; everything else stays plain text. Each post
-   links back to LinkedIn via its permalink. Images that fail to load
-   are dropped instead of showing a broken-image icon.
+1. `linkedin.html` loads two Web Components, both fed by static,
+   same-origin JSON files:
+   - `<linkedin-card data-src="data/linkedin.json">` — the profile card
+     (name, headline, summary, skills, experience). Edit that file to
+     change what is shown.
+   - `<linkedin-posts data-src="data/posts.json">` — the posts feed.
+2. Both files are same-origin, so the strict page CSP
+   (`connect-src 'self'`, `img-src 'self'`) stays intact.
+3. The posts component renders each post with `textContent` only — post
+   text can never inject HTML into the page. `https://` URLs inside post
+   text become real links; every post links back to LinkedIn via its
+   permalink. Post images are local files under `assets/linkedin/`
+   (referenced by site-root paths), so nothing is ever loaded from
+   LinkedIn's CDN. Images that fail to load are dropped instead of
+   showing a broken-image icon.
+4. Optional enhancement while `npm start` is running and you have
+   connected once: the card swaps in your live LinkedIn profile picture
+   and name via `/api/linkedin/profile` (see
+   [Connecting your LinkedIn](#connecting-your-linkedin-one-click)).
+   On a static host the card simply renders from `data/linkedin.json`.
+
+## Keeping the feed in sync
+
+`data/posts.json` is the feed. It ships with the site and is committed
+to git like any other content file. Three ways to maintain it:
+
+### 1. Bulk sync from LinkedIn's official export (recommended)
+
+LinkedIn gives every member an official copy of their own data —
+including every post they've shared:
+
+1. On LinkedIn: **Me icon → Settings & Privacy → Data Privacy →
+   "How LinkedIn uses your data" → Download your data**.
+2. Request **the larger download** (the full archive — it contains
+   `Shares.csv`). LinkedIn emails you a download link; it can take up
+   to ~24 hours and the link stays valid for 72 hours.
+3. Unzip it, then run (quote paths with spaces):
+
+   ```powershell
+   node tools/import-shares.js "C:\Users\you\Downloads\LinkedInDataExport-11-10-2026\Shares.csv"
+   ```
+
+That's LinkedIn handing you your own posts in machine-readable form —
+the sanctioned way to clone them. The tool:
+
+- keeps only posts shared as **"Anyone"** by default (the website is
+  public — connections-only posts are skipped; `--all` overrides),
+- skips plain reshares that have no comment text of their own,
+- updates posts already in `data/posts.json` instead of duplicating
+  them, and preserves any image you attached by hand,
+- writes the file atomically and prints a summary of what it did.
+
+Re-run it whenever you want to re-sync — it is offline, instant, and
+free. Then commit `data/posts.json` and upload with the site.
+
+### 2. Add a single post
+
+Right after you publish something on LinkedIn:
+
+```powershell
+node tools/add-post.js "The post text, pasted from LinkedIn" https://www.linkedin.com/posts/zjacko_ab12cd34
+```
+
+Use LinkedIn's own **⋯ → Copy link to post** for the permalink. Options:
+`--date "2026-11-10 18:30"` (defaults to now), `--image` /
+`--alt` to attach a local image, `--out` to target a different file.
+Adding a permalink that already exists updates that post.
+
+### 3. With an image
+
+The site CSP (`img-src 'self'`) blocks LinkedIn's CDN by design, so
+post images are local files:
+
+1. Save the image into `assets/linkedin/` (any name, e.g.
+   `2026-11-launch.png`).
+2. Reference it by site-root path:
+
+   ```powershell
+   node tools/add-post.js "Shipped it" https://www.linkedin.com/posts/zjacko_xyz --image /assets/linkedin/2026-11-launch.png --alt "The new site"
+   ```
+
+The bulk export's `Shares.csv` has no images, so photo posts imported
+that way arrive text-only — attach images by hand as above when you
+want them shown.
+
+### File shape
+
+`data/posts.json` mirrors what `<linkedin-posts>` validates:
+
+```json
+{
+  "ok": true,
+  "source": "file",
+  "fetchedAt": "2026-11-11T18:30:00.000Z",
+  "author": { "name": "Zach Jacko", "picture": "" },
+  "count": 1,
+  "posts": [
+    {
+      "id": "urn:li:share:7000000000000000001",
+      "text": "Just shipped something…",
+      "createdAtMs": 1762700000000,
+      "createdAt": "2026-11-09T14:26:40.000Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:share:7000000000000000001/",
+      "media": null
+    }
+  ]
+}
+```
+
+`author.picture` may be a site-root path (e.g. `/assets/linkedin/avatar.png`)
+— the feed shows the initials fallback when it is empty. `media` is
+`null` or `{ "type": "IMAGE", "url": "/assets/linkedin/...", "alt": "..." }`.
 
 ## Connecting your LinkedIn (one click)
 
@@ -89,17 +180,24 @@ Everything except the LinkedIn app itself is automated — no manual
 token minting, no hunting for your member URN. You do the app setup
 once; connecting and renewing is a button.
 
-> **Heads-up: reading your own posts needs LinkedIn's approval.**
-> The `r_member_social` scope (it reads your posts) is **restricted** —
-> LinkedIn reviews and must approve your app for it (it is part of the
-> Community Management API program). Your live name and photo
-> (`openid`, `profile`) are self-serve and work instantly. So: connect
-> today for the profile card, request post access in the portal, and
-> the feed lights up once LinkedIn approves it.
+> **Status (November 2026): LinkedIn has closed post-reading via API.**
+> The `r_member_social` scope (read your own posts) is not accepting
+> access requests — LinkedIn's [API
+> FAQ](https://learn.microsoft.com/en-us/linkedin/marketing/lms-faq):
+> "`r_member_social` is a closed permission, and we're not accepting
+> access requests this time due to resource constraints." The same FAQ
+> states that displaying a feed of posts on your own website is not an
+> approved use of their APIs. That is why the feed reads
+> `data/posts.json` now (synced from LinkedIn's official data export):
+> the Connect flow below can still sync your live **name and profile
+> picture** (`openid`, `profile` — self-serve, works today), but the
+> posts themselves can no longer come from the API.
 
 1. **Create an app** at <https://www.linkedin.com/developers/apps>.
    LinkedIn requires apps to be attached to a Page you administer
-   (a company/creator page).
+   (a company/creator page) — that Page is only a registration
+   formality for the app; it never appears on the site and nothing
+   connects to it.
 2. **Products tab** → add **"Sign In with LinkedIn using OpenID
    Connect"** — granted instantly; carries the `openid` and `profile`
    scopes (live name + profile picture).
@@ -125,9 +223,10 @@ tokens exist only for select partners). Renewing is just opening
 in to LinkedIn there is no consent screen, it's one click. The page
 shows how many days are left and when the token expires.
 
-If your app is still waiting for Community Management approval, you can
-connect profile-only meanwhile: set `LINKEDIN_SCOPES=openid profile` in
-`.env`, connect, and switch it back to the default after approval.
+If your app is still waiting for Community Management approval, connect
+profile-only: set `LINKEDIN_SCOPES=openid profile` in `.env` before
+connecting (requesting `r_member_social` on an app that does not have
+it makes LinkedIn refuse the whole authorization).
 
 ### Manual fallback (optional)
 
@@ -270,8 +369,8 @@ LinkedIn app, and Connect through it:
 4. Open `https://random-characters.example.net/connect.html`, enter
    your owner key, click **Connect LinkedIn**, log in as yourself,
    click **Allow** — you're connected for real: live profile photo
-   immediately, real posts once the Community Management API is
-   approved.
+   syncs onto the card immediately (posts come from `data/posts.json`;
+   the posts API is closed to new apps, see the Status note above).
 5. When finished, remove the Redirect URL from the LinkedIn app.
 
 Tunnel options:
@@ -358,10 +457,10 @@ layers:
 - **Always-on:** host this server on a small VPS/container behind nginx,
   reverse-proxying `zjacko.com` (static + `/api/*`) to it. Set
   `TRUST_PROXY=1` (correct client IPs for rate limiting) and keep HTTPS.
-- **Static hosts (Apache/LiteSpeed, Netlify):** a Node server cannot run
-  there, so on the static deployment the feed will show its
-  "Posts unavailable" state unless you host this server somewhere and
-  proxy `/api/*` to it. Everything else on the site keeps working.
+- **Static hosts (Apache/LiteSpeed, Netlify):** everything works out of
+  the box, including the posts feed — `data/posts.json` is a static
+  file. Only the optional live-profile enhancement and the Connect flow
+  need the Node server (or a proxy for `/api/*`).
 - **Do NOT upload** `.env`, `node_modules/`, `server.js`, or
   `package.json` to your static host — they belong to this server only.
   (`.gitignore` already excludes them from git.)
@@ -370,7 +469,11 @@ layers:
 
 | Symptom | Cause / fix |
 | --- | --- |
-| "Posts unavailable — LinkedIn denied access (403)" | `r_member_social` is a restricted scope; LinkedIn hasn't approved your app yet (or the token lacks it). |
+| import-shares: "Could not find column(s) …" | That CSV isn't the Shares.csv from the full export — request the **larger download** (full archive) and point the tool at its Shares.csv. |
+| import-shares skipped some posts | Posts shared as "Connections only" are skipped by default (the site is public), and plain reshares without your own comment are skipped too. Use `--all` to include non-public posts. |
+| Feed shows "No public posts yet" | `data/posts.json` has no posts yet — run `node tools/import-shares.js …` after requesting LinkedIn's data export, or add one with `node tools/add-post.js …`. |
+| Feed shows "Could not load data/posts.json (404)" | The file wasn't uploaded with the site — commit it and redeploy. |
+| "Posts unavailable — LinkedIn denied access (403)" (only if you use `/api/linkedin/posts` directly) | `r_member_social` is closed to new apps (see the Status note above) — the site feed intentionally uses `data/posts.json` instead. |
 | Connect ends on "LinkedIn refused the token exchange" | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` in `.env` don't match the app, or the Redirect URL registered in the app doesn't exactly match the one used (`LINKEDIN_REDIRECT_URI`). |
 | Connect ends on "permission prompt was cancelled" | You closed or denied LinkedIn's consent screen — click Connect again. |
 | "LinkedIn rejected the access token" | Token expired (they last 60 days) — open `connect.html` and click Connect again (one click while logged in to LinkedIn). |

@@ -4,15 +4,18 @@
    attached images, and a permalink to the original post.
 
    Usage:
-     <linkedin-posts data-src="/api/linkedin/posts"></linkedin-posts>
+     <linkedin-posts data-src="data/posts.json"></linkedin-posts>
 
-   data-src SHOULD be the same-origin endpoint served by the companion
-   Express server (server.js): GET /api/linkedin/posts. The server fetches
-   the owner's posts (plus their name and profile picture via LinkedIn's
-   userinfo endpoint), reduces them to text + timestamps + permalinks +
-   proxied image URLs, and caches the result. Running the site through
-   that server keeps the page's CSP connect-src 'self' valid — absolute
-   cross-origin URLs would be blocked by the CSP by design.
+   data-src points at a static, same-origin JSON file: data/posts.json,
+   a local read-only copy of the site owner's LinkedIn posts (text,
+   timestamps, permalinks, and optional local images under
+   assets/linkedin/). The file is maintained offline with
+   tools/import-shares.js (imports LinkedIn's official "Download your
+   data" export) and tools/add-post.js (adds a single post), then
+   committed with the site — so this works on any host with no backend.
+   The page CSP's connect-src 'self' stays valid because the file is
+   same-origin; absolute cross-origin URLs would be blocked by the CSP
+   by design.
 
    This component is DISPLAY ONLY — it can never create, edit, or delete
    anything on LinkedIn, and it exposes no token or credentials.
@@ -92,7 +95,7 @@
       var src = (this.getAttribute("data-src") || "").trim();
       if (!src) {
         this._renderError(
-          'Missing data-src attribute — point it at the feed endpoint, e.g. data-src="/api/linkedin/posts".'
+          'Missing data-src attribute — point it at the posts file, e.g. data-src="data/posts.json".'
         );
         return;
       }
@@ -140,22 +143,23 @@
     }
 
     /* Turns low-level fetch failures into a message that explains the
-       most common cause: viewing the static site without the companion
-       Node server running. */
+       most common causes: the posts file missing from the deployed
+       site, or the page opened from a folder (file://) where fetch()
+       is blocked. */
     _fetchMessage(src, error) {
       var message = error && error.message ? String(error.message) : "Unknown error.";
       if (/^HTTP 40[04]/.test(message)) {
         return (
-          'The feed endpoint "' + src + '" did not answer (404) — it is served by the ' +
-          "companion Node server. Run npm start and open this page through it " +
-          "(http://localhost:3000), see README.md."
+          'Could not load "' + src + '" (404) — the file is missing or was not uploaded ' +
+          "with the site. The feed reads data/posts.json; commit it with the site " +
+          "(see README.md)."
         );
       }
       if (/failed to fetch|networkerror|load failed/i.test(message)) {
         return (
-          'Could not reach the feed server at "' + src + '". If this is the static site ' +
-          "without the companion Node server running, start it with npm start and view " +
-          "the page through it (see README.md)."
+          'Could not load "' + src + '". If you opened this page straight from a folder ' +
+          "(file://), fetch() is blocked by the browser — serve the site over HTTP(S) " +
+          "instead (npm start, or your web host)."
         );
       }
       return message;
@@ -331,7 +335,7 @@
 
       if (!data.posts.length) {
         card.appendChild(
-          this._el("p", "li-empty", "No public posts yet — new posts appear here automatically.")
+          this._el("p", "li-empty", "No public posts yet — check back soon.")
         );
         this.replaceChildren(card);
         return;

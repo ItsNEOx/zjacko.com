@@ -50,20 +50,19 @@
       </section>
 
       <section class="section" aria-label="Recent LinkedIn posts">
-        <linkedin-posts data-src="/api/linkedin/posts"></linkedin-posts>
+        <linkedin-posts data-src="data/posts.json"></linkedin-posts>
       </section>
 
       <section class="section">
         <p class="form-note">
           The profile card is rendered by <code>&lt;linkedin-card&gt;</code> from <code>data/linkedin.json</code> —
           edit that file to update the summary, skills, and experience shown here.
-          When the companion Node server (<code>server.js</code>) is running, it also swaps in your
-          live LinkedIn profile picture and name, and the feed below pulls your real posts
-          (text, photos, and permalinks) read-only from LinkedIn. To link your account once,
-          open <code>connect.html</code> and click Connect (see <code>README.md</code> for the one-time
-          LinkedIn app setup). Run <code>npm start</code>, then open this page via
-          <code>http://localhost:3000</code> so the site and API share one origin.
-          Nothing on this page can publish to LinkedIn.
+          The feed below is a local, read-only clone of your LinkedIn posts:
+          <code>data/posts.json</code>, synced from LinkedIn's official
+          "Download your data" export with <code>node tools/import-shares.js</code>,
+          or one post at a time with <code>node tools/add-post.js</code> (see
+          <code>README.md</code>). It renders on any host with no server, and
+          nothing on this page can publish to LinkedIn.
         </p>
       </section>
     </div>
