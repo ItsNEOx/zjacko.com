@@ -1,0 +1,415 @@
+/* LinkedIn component styles — shared shell + <linkedin-card>.
+   Light DOM with .li-* scoped classes so the site CSP (style-src 'self')
+   stays intact — no shadow DOM, no inline styles.
+   Colors/fonts reference the site's custom properties with fallbacks,
+   so the card also renders standalone, outside this site.
+
+   This file holds the SHARED .li-* shell styles (.li-card, .li-skeleton,
+   .li-btn, .li-error-*, .li-empty, .li-visually-hidden) used by both
+   LinkedIn components — <linkedin-card> and <linkedin-posts>
+   (feed-specific styles live in linkedin-posts.css; both files are
+   loaded together on linkedin.html). */
+
+linkedin-card {
+  display: block;
+}
+
+/* ---------- Card shell ---------- */
+.li-card {
+  background: var(--surface, #131a2b);
+  border: 1px solid var(--border, #242d47);
+  border-radius: var(--radius, 10px);
+  box-shadow: 0 8px 24px rgba(9, 6, 20, 0.35);
+  padding: 1.75rem 1.75rem 1.5rem;
+  max-width: 760px;
+  margin: 0 auto;
+  color: var(--text, #c9d4ff);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ---------- Header ---------- */
+.li-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border, #242d47);
+}
+
+.li-avatar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-dim, #24307a);
+  border: 1px solid var(--border, #242d47);
+  color: var(--text-strong, #f8f9ff);
+  font-family: var(--font-brand, "Segoe UI", system-ui, sans-serif);
+  font-weight: 800;
+  font-size: 1.9rem;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* The picture sits on top of the initials and fades in once it has
+   loaded (the --loaded class is added from JS); while it loads — or if
+   it never loads — the initials simply stay visible underneath. */
+.li-avatar-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.li-avatar-img--loaded {
+  opacity: 1;
+}
+
+.li-id {
+  min-width: 0;
+}
+
+.li-name {
+  margin: 0 0 0.2rem;
+  color: var(--text-strong, #f8f9ff);
+  font-family: var(--font-brand, "Segoe UI", system-ui, sans-serif);
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.li-headline {
+  margin: 0 0 0.35rem;
+  color: var(--accent-soft, #8aa2ff);
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+
+.li-location {
+  margin: 0;
+  color: var(--muted, #8c96d6);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Sections ---------- */
+.li-summary,
+.li-skills,
+.li-timeline {
+  padding-top: 1.4rem;
+}
+
+.li-section-title {
+  margin: 0 0 0.8rem;
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent, #6b8bff);
+}
+
+.li-summary-text {
+  margin: 0;
+  max-width: 68ch;
+}
+
+.li-empty {
+  margin: 0;
+  color: var(--muted, #8c96d6);
+  font-size: 0.95rem;
+}
+
+/* ---------- Skills ---------- */
+.li-skill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.li-skill {
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--accent-soft, #8aa2ff);
+  background: var(--surface-2, #182038);
+  border: 1px solid var(--border, #242d47);
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  white-space: nowrap;
+}
+
+/* ---------- Experience timeline ---------- */
+.li-timeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border, #242d47);
+}
+
+.li-timeline-item {
+  position: relative;
+  padding: 0 0 1.5rem 1.5rem;
+}
+
+.li-timeline-item:last-child {
+  padding-bottom: 0.2rem;
+}
+
+.li-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -6.5px;
+  top: 0.5rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent, #6b8bff);
+  border: 2px solid var(--surface, #131a2b);
+}
+
+.li-role {
+  margin: 0 0 0.15rem;
+  color: var(--text-strong, #f8f9ff);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.li-company {
+  margin: 0 0 0.2rem;
+  color: var(--accent-soft, #8aa2ff);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.li-period {
+  margin: 0 0 0.45rem;
+  color: var(--muted, #8c96d6);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.li-desc {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 0.95rem;
+}
+
+/* ---------- Actions / buttons ---------- */
+.li-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border, #242d47);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.li-btn {
+  display: inline-block;
+  padding: 0.68rem 1.4rem;
+  border-radius: 8px;
+  background: var(--accent, #6b8bff);
+  color: #0b0f19;
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: inherit;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+}
+
+.li-btn--ghost {
+  background: var(--surface-2, #182038);
+  border-color: var(--border, #242d47);
+  color: var(--text-strong, #f8f9ff);
+}
+
+.li-btn--ghost:hover,
+.li-btn--ghost:focus-visible {
+  border-color: var(--accent-dim, #24307a);
+  background: var(--surface, #131a2b);
+  color: var(--text-strong, #f8f9ff);
+}
+
+.li-btn:hover,
+.li-btn:focus-visible {
+  background: var(--accent-soft, #8aa2ff);
+  color: #0b0f19;
+  transform: translateY(-1px);
+}
+
+.li-btn:focus-visible {
+  outline: 2px solid var(--accent-soft, #8aa2ff);
+  outline-offset: 2px;
+}
+
+/* ---------- Loading skeleton ---------- */
+.li-card--loading {
+  min-height: 340px;
+}
+
+.li-avatar--skeleton {
+  background: var(--surface-2, #182038);
+  color: transparent;
+  animation: li-pulse 1.4s ease-in-out infinite;
+}
+
+.li-skeleton {
+  border-radius: 6px;
+  background: var(--surface-2, #182038);
+  animation: li-pulse 1.4s ease-in-out infinite;
+}
+
+.li-skeleton--name {
+  height: 1.4rem;
+  width: 60%;
+  margin-bottom: 0.6rem;
+}
+
+.li-skeleton--line {
+  height: 0.85rem;
+  margin-bottom: 0.7rem;
+}
+
+.li-skeleton--line:nth-of-type(2) {
+  width: 92%;
+}
+
+.li-skeleton--line:nth-of-type(3) {
+  width: 78%;
+}
+
+.li-skeleton--line:nth-of-type(4) {
+  width: 85%;
+}
+
+.li-body {
+  padding-top: 1.4rem;
+}
+
+@keyframes li-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---------- Error state ---------- */
+.li-card--error {
+  border-color: #7a3547;
+}
+
+.li-error-title {
+  margin: 0 0 0.4rem;
+  color: #ff8fa3;
+  font-size: 1.2rem;
+}
+
+.li-error-text {
+  margin: 0 0 0.5rem;
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.85rem;
+  word-break: break-word;
+}
+
+.li-error-hint {
+  margin: 0;
+  color: var(--muted, #8c96d6);
+  font-size: 0.85rem;
+}
+
+/* ---------- Screen-reader only ---------- */
+.li-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .li-card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .li-card {
+    padding: 1.25rem 1.1rem 1.1rem;
+    font-size: 0.97rem;
+  }
+
+  .li-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.85rem;
+  }
+
+  .li-avatar {
+    width: 76px;
+    height: 76px;
+    font-size: 1.5rem;
+  }
+
+  .li-name {
+    font-size: 1.35rem;
+  }
+
+  .li-timeline-item {
+    padding-left: 1.1rem;
+  }
+
+  .li-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .li-skeleton,
+  .li-avatar--skeleton {
+    animation: none;
+  }
+
+  .li-avatar-img {
+    transition: none;
+  }
+
+  .li-btn {
+    transition: none;
+  }
+
+  .li-btn:hover,
+  .li-btn:focus-visible {
+    transform: none;
+  }
+}

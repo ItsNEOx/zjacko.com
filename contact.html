@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171331">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Contact — zjacko.com</title>
+  <meta name="description" content="Get in touch with Zach Jacko.">
+  <link rel="icon" type="image/png" href="assets/logo/logo2.png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/head.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="index.html"><img class="brand-mark" src="assets/logo/logo2.png" alt="" width="52" height="34">zjacko.com</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">☰</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="linkedin.html">LinkedIn</a></li>
+        <li><a href="contact.html" aria-current="page">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="section-head">
+        <span class="kicker">Contact</span>
+        <h1>Get in Touch</h1>
+        <p class="subtitle">Send a message and I'll get back to you.</p>
+      </section>
+
+      <section class="section contact-grid">
+        <div>
+          <form id="contact-form" class="form" data-contact-email="you@zjacko.com" novalidate>
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" maxlength="100" required>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+            </div>
+            <div class="field">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" maxlength="5000" required></textarea>
+            </div>
+            <p class="form-status" id="form-status" role="status" aria-live="polite" hidden></p>
+            <div>
+              <button class="btn btn-primary" type="submit">Send Message</button>
+            </div>
+            <p class="form-note">
+              This form opens your email client — no data is sent to a server from this page.
+              Update <code>data-contact-email</code> on the form to set your address.
+            </p>
+          </form>
+        </div>
+
+        <aside aria-label="Contact details">
+          <ul class="contact-list">
+            <li><span class="label">Email</span><span>&lt;pending creation&gt;</span></li>
+            <li><span class="label">Location</span><span>Wilkes County, North Carolina</span></li>
+          </ul>
+          <div class="placeholder mt-1">
+            <span class="hint">Editable text — contact</span>
+            Add any extra contact information or instructions for reaching you here.
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>&copy; <span data-year>2026</span> zjacko.com</span>
+      <span><a href="https://www.linkedin.com/in/zjacko" target="_blank" rel="noopener noreferrer">LinkedIn</a> · <a href="contact.html">Contact</a> · <a href="portfolio.html">Portfolio</a> · <a href="sitemap.html">Sitemap</a></span>
+    </div>
+  </footer>
+
+  <script src="assets/js/nebula.js"></script>
+  <script src="assets/js/background.js"></script>
+  <script src="assets/js/burst.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/terminal.js"></script>
+</body>
+</html>

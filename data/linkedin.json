@@ -1,0 +1,42 @@
+{
+  "profile": {
+    "name": "Zach Jacko",
+    "headline": "Website Development & Security",
+    "location": "Wilkes County, North Carolina",
+    "avatar": "",
+    "linkedin_url": "https://www.linkedin.com/in/zjacko",
+    "summary": "Website developer and security tester from Wilkes County, North Carolina. I started learning HTML in 2016 and am now working toward a degree in Systems Security, where a web development course pulled me deeper into HTML, CSS, PHP, and MySQL. I build sites, then test them to their true limits - sometimes breaking things along the way, always putting them back together harder to break."
+  },
+  "skills": [
+    "HTML",
+    "CSS",
+    "PHP",
+    "Python",
+    "MySQL",
+    "Penetration Testing",
+    "Nmap",
+    "Security Testing",
+    "VS Code",
+    "OpenCode"
+  ],
+  "experience": [
+    {
+      "role": "Penetration Tester",
+      "company": "Summit Gaming of Wilkes",
+      "period": "2025 — Present",
+      "description": "Security testing for summitgamingofwilkes.com - probing the site's defenses, documenting findings, and helping harden it against real-world attack paths."
+    },
+    {
+      "role": "Web Developer & Security Tester",
+      "company": "GRIMFORGE CREATIONS",
+      "period": "2024 — Present",
+      "description": "Building websites and breaking them on purpose - development paired with security testing from the first line of code."
+    },
+    {
+      "role": "Competitor, Web Design & Development",
+      "company": "SkillsUSA North Carolina",
+      "period": "2025",
+      "description": "Teammate and I placed first in the state competition, then eighth in the United States at the national competition."
+    }
+  ]
+}

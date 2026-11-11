@@ -1,0 +1,15 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Secrets — never commit or upload these
+.env
+.env.*
+!.env.example
+
+# OAuth token written by the Connect flow (server-side only)
+private/
+
+# OS junk
+Thumbs.db
+.DS_Store

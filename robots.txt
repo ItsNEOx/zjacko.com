@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zjacko.com/sitemap.xml

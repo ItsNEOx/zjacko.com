@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171331">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Connect LinkedIn — zjacko.com</title>
+  <meta name="description" content="Owner-only page that links zjacko.com to Zach's LinkedIn account.">
+  <link rel="icon" type="image/png" href="assets/logo/logo2.png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/head.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="index.html"><img class="brand-mark" src="assets/logo/logo2.png" alt="" width="52" height="34">zjacko.com</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">☰</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="linkedin.html">LinkedIn</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="section-head">
+        <span class="kicker">LinkedIn</span>
+        <h1>Connect</h1>
+        <p class="subtitle">Link this site to your LinkedIn account — owner only.</p>
+      </section>
+
+      <section class="section" aria-label="LinkedIn connection">
+        <div class="form">
+          <p class="form-status" id="connect-flash" role="status" aria-live="polite" hidden></p>
+          <p class="form-status" id="connect-status" role="status" aria-live="polite">Checking the connection…</p>
+
+          <div class="field">
+            <label for="admin-key">Owner key</label>
+            <input id="admin-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="LINKEDIN_ADMIN_KEY from .env">
+            <p class="form-note">
+              The <code>LINKEDIN_ADMIN_KEY</code> password from <code>.env</code>. It keeps anyone else
+              from pointing your feed at their own LinkedIn, and is kept in this tab only
+              (sessionStorage) — it is never written anywhere else.
+            </p>
+          </div>
+
+          <div>
+            <button class="btn btn-primary" id="connect-btn" type="button">Connect LinkedIn</button>
+            <button class="btn btn-ghost" id="disconnect-btn" type="button" hidden>Disconnect</button>
+          </div>
+
+          <p class="form-note">
+            Connect runs LinkedIn's official OAuth consent screen: you log in as yourself, click
+            <em>Allow</em>, and this server stores the token it receives in <code>private/</code> —
+            the browser never sees it. Tokens last 60 days; when one expires, come back and click
+            Connect once more (while you are still logged in to LinkedIn, it's a single click with
+            no consent screen). The author URN is discovered automatically.
+          </p>
+          <p class="form-note">
+            <strong>Reading your posts needs LinkedIn's approval.</strong> Connect requests the scopes
+            <code>r_member_social openid profile</code>. <code>openid</code> + <code>profile</code>
+            (your live name and photo) work right away. <code>r_member_social</code> — the posts
+            themselves — is a restricted scope: request the <em>Community Management API</em> product
+            on your LinkedIn app and LinkedIn must approve it. Until then the feed stays in its
+            fallback state. Full steps are in <code>README.md</code> → “Connecting your LinkedIn”.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>&copy; <span data-year>2026</span> zjacko.com</span>
+      <span><a href="https://www.linkedin.com/in/zjacko" target="_blank" rel="noopener noreferrer">LinkedIn</a> · <a href="contact.html">Contact</a> · <a href="portfolio.html">Portfolio</a> · <a href="sitemap.html">Sitemap</a></span>
+    </div>
+  </footer>
+
+  <script src="assets/js/nebula.js"></script>
+  <script src="assets/js/background.js"></script>
+  <script src="assets/js/burst.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/terminal.js"></script>
+  <script src="assets/js/connect.js"></script>
+</body>
+</html>
