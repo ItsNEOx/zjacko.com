@@ -2,13 +2,9 @@
 node_modules/
 npm-debug.log*
 
-# Secrets — never commit or upload these
+# Secrets — never commit or upload these (kept as a safety net)
 .env
 .env.*
-!.env.example
-
-# OAuth token written by the Connect flow (server-side only)
-private/
 
 # OS junk
 Thumbs.db

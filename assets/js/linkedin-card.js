@@ -4,28 +4,21 @@
    Usage:
      <linkedin-card data-src="data/linkedin.json"></linkedin-card>
 
-     <linkedin-card data-src="data/linkedin.json"
-                   data-profile-api="/api/linkedin/profile"></linkedin-card>
+   The card renders from data/linkedin.json — a static, same-origin
+   file, so it works on any host with no backend. To show your profile
+   picture, set profile.avatar in that file to a local image path
+   (e.g. /assets/linkedin/avatar.png) or a data: URI; when it is empty
+   the initials avatar is used instead.
 
-   The card renders from data/linkedin.json (which works even on a static
-   host with no backend). Setting data-profile-api adds an optional live
-   enhancement: the companion server's /api/linkedin/profile endpoint is
-   fetched and, when it answers, the card's avatar is swapped for the real
-   LinkedIn profile picture and the name is synced with LinkedIn. If the
-   fetch fails in any way (static host, server down, missing scopes), the
-   card silently stays as rendered from the JSON file.
-
-   This component is read-only display only — the companion server
-   (server.js) and <linkedin-posts> handle the LinkedIn feed, and nothing
-   on this site can publish to LinkedIn.
+   This component is read-only display only — nothing on this site can
+   publish to LinkedIn.
 
    Security notes:
    - No innerHTML with data — every field is inserted with textContent,
      so nothing in the JSON can inject markup or script.
-   - Fetches only the paths given in data-src / data-profile-api
-     (same-origin; the site CSP's connect-src 'self' enforces this too).
-     response.ok is checked and the JSON shape is validated before
-     anything renders.
+   - Fetches only the path given in data-src (same-origin; the site
+     CSP's connect-src 'self' enforces this too). response.ok is
+     checked and the JSON shape is validated before anything renders.
    - Outbound profile links must be https: and always get
      rel="noopener noreferrer".
    - Avatar images must be relative paths or data: URIs — anything with a
@@ -44,13 +37,12 @@
 
   class LinkedInCard extends HTMLElement {
     static get observedAttributes() {
-      return ["data-src", "data-profile-api"];
+      return ["data-src"];
     }
 
     constructor() {
       super();
       this._controller = null;
-      this._profileController = null;
     }
 
     connectedCallback() {
@@ -68,20 +60,12 @@
 
     disconnectedCallback() {
       this._cancel();
-      this._cancelProfile();
     }
 
     _cancel() {
       if (this._controller) {
         this._controller.abort();
         this._controller = null;
-      }
-    }
-
-    _cancelProfile() {
-      if (this._profileController) {
-        this._profileController.abort();
-        this._profileController = null;
       }
     }
 
@@ -193,20 +177,6 @@
       }
       if (value.indexOf("..") !== -1) {
         return null; /* no path traversal */
-      }
-      return value;
-    }
-
-    /* Same-origin paths only (for the server's media proxy). Rejects
-       absolute URLs, protocol-relative //, ".." and backslashes so the
-       profile response can never point an <img> outside this origin. */
-    _sameOriginPath(raw) {
-      var value = this._string(raw);
-      if (!value || value.charAt(0) !== "/") {
-        return null;
-      }
-      if (value.indexOf("//") === 0 || value.indexOf("..") !== -1 || value.indexOf("\\") !== -1) {
-        return null;
       }
       return value;
     }
@@ -392,93 +362,6 @@
       }
 
       this.replaceChildren(card);
-
-      /* Optional: swap in the real LinkedIn name + profile picture. */
-      this._enhanceProfile();
-    }
-
-    /* ---------- Live profile enhancement (optional) ---------- */
-
-    /* Fetches data-profile-api (served by server.js) and, when it
-       answers, replaces the initials avatar with the real LinkedIn
-       profile picture and syncs the displayed name. Pure enhancement:
-       any failure leaves the JSON-rendered card untouched. */
-    _enhanceProfile() {
-      this._cancelProfile();
-
-      var endpoint = (this.getAttribute("data-profile-api") || "").trim();
-      if (!endpoint) {
-        return;
-      }
-
-      var controller = new AbortController();
-      this._profileController = controller;
-
-      fetch(endpoint, {
-        signal: controller.signal,
-        credentials: "omit",
-        redirect: "error",
-        headers: { "Accept": "application/json" }
-      })
-        .then(function (response) {
-          if (!response.ok) {
-            return null;
-          }
-          return response.json();
-        })
-        .then(function (data) {
-          if (controller.signal.aborted || !this.isConnected) {
-            return;
-          }
-          if (data && typeof data === "object" && data.ok) {
-            this._applyLiveProfile(data);
-          }
-        }.bind(this))
-        .catch(function () {
-          /* Silent — enhancement only. */
-        });
-    }
-
-    _applyLiveProfile(data) {
-      var name = typeof data.name === "string" ? data.name.trim() : "";
-      var picture = this._sameOriginPath(data.picture);
-
-      if (name) {
-        var nameEl = this.querySelector(".li-name");
-        if (nameEl) {
-          nameEl.textContent = name;
-        }
-      }
-
-      var avatarWrap = this.querySelector(".li-avatar");
-      if (!avatarWrap || avatarWrap.querySelector("img")) {
-        return; /* already has an image (e.g. from data/linkedin.json) */
-      }
-
-      if (name) {
-        avatarWrap.setAttribute("aria-label", "Avatar for " + name);
-        avatarWrap.textContent = this._initials(name);
-      }
-
-      if (picture) {
-        /* Same pattern as the JSON avatar: append right away, layered
-           over the initials, revealed once it loads — a broken or
-           blocked image never shows a broken-image icon. */
-        var img = document.createElement("img");
-        img.className = "li-avatar-img";
-        img.alt = "";
-        img.decoding = "async";
-        img.addEventListener("load", function () {
-          img.classList.add("li-avatar-img--loaded");
-        });
-        img.addEventListener("error", function () {
-          if (img.parentNode) {
-            img.parentNode.removeChild(img);
-          }
-        });
-        avatarWrap.appendChild(img);
-        img.src = picture;
-      }
     }
   }
 

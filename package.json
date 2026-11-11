@@ -1,8 +1,8 @@
 {
-  "name": "zjacko-linkedin-feed",
+  "name": "zjacko-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Companion Express server for zjacko.com — serves the static site and exposes a read-only feed of the owner's LinkedIn posts.",
+  "description": "zjacko.com static website plus a tiny Express dev server. The site itself is fully static and needs no Node in production.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,8 +12,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
     "express": "^4.19.2"
   }
 }
