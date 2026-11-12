@@ -248,6 +248,7 @@
       var profile = (data.profile && typeof data.profile === "object") ? data.profile : {};
       var name = this._string(profile.name) || "Unnamed";
       var headline = this._string(profile.headline);
+      var company = this._string(profile.company);
       var location = this._string(profile.location);
       var summary = this._string(profile.summary);
       var skills = this._stringArray(data.skills);
@@ -291,6 +292,9 @@
       idBlock.appendChild(this._el("h2", "li-name", name));
       if (headline) {
         idBlock.appendChild(this._el("p", "li-headline", headline));
+      }
+      if (company) {
+        idBlock.appendChild(this._el("p", "li-profile-company", company));
       }
       if (location) {
         idBlock.appendChild(this._el("p", "li-location", location));

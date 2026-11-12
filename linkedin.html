@@ -55,14 +55,11 @@
 
       <section class="section">
         <p class="form-note">
-          The profile card is rendered by <code>&lt;linkedin-card&gt;</code> from <code>data/linkedin.json</code> —
-          edit that file to update the summary, skills, and experience shown here.
-          The feed below is a local, read-only clone of your LinkedIn posts:
-          <code>data/posts.json</code>, synced from LinkedIn's official
-          "Download your data" export with <code>node tools/import-shares.js</code>,
-          or one post at a time with <code>node tools/add-post.js</code> (see
-          <code>README.md</code>). It renders on any host with no server, and
-          nothing on this page can publish to LinkedIn.
+          The profile card is rendered by <code>&lt;linkedin-card&gt;</code> from <code>data/linkedin.json</code>,
+          and the feed by <code>&lt;linkedin-posts&gt;</code> from <code>data/posts.json</code>.
+          Both files are synced word-for-word from Zach's own LinkedIn profile every 4 hours
+          (see <code>README.md</code>). Everything is static and read-only — nothing on this
+          page can publish to LinkedIn.
         </p>
       </section>
     </div>

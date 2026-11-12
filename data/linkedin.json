@@ -1,42 +1,24 @@
 {
   "profile": {
-    "name": "Zach Jacko",
-    "headline": "Website Development & Security",
-    "location": "Wilkes County, North Carolina",
-    "avatar": "",
+    "name": "Zach (Zachary) Jacko",
+    "headline": "Intern at Carolina Cyber Network",
+    "location": "United States",
+    "avatar": "assets/linkedin/avatar.jpg",
     "linkedin_url": "https://www.linkedin.com/in/zjacko",
-    "summary": "Website developer and security tester from Wilkes County, North Carolina. I started learning HTML in 2016 and am now working toward a degree in Systems Security, where a web development course pulled me deeper into HTML, CSS, PHP, and MySQL. I build sites, then test them to their true limits - sometimes breaking things along the way, always putting them back together harder to break."
+    "summary": "Cybersecurity Student at Wilkes Community College,\nIntern with Carolina Cyber Network\nSkillsUSA North Carolina 1st Place winner in Web-Development,\nSkillsUSA Nationals 8th place for Web-Development,\nProfessional Website Breaker\n\nSince I have started my Cybersecurity journey at Wilkes Community College, I have gained experience in:\nWeb App Penetration Testing,\nReconnaissance,\nEnumeration,\nVulnerability Identification,\nVulnerability Exploiting,\nMySQL,\nPHPmyAdmin,\nTailscale,\nNetwork Management, Security and Administration in Cisco Equipment,\nSubnetting,\nVirtual Machines,\nLinux,\nKali,\nParrotOS,\nArtificial Intelligence,\nHardware and Software,\nLLM Setup,\nDigital Forensics,\nAnd much more including Offensiveand Defensive Security Measures.\n\nDeveloper and creator of 'NEO-RADAR'\n\nTools I have gained experience in are:\nNmap,\nZenmap,\nSQLmap,\nWPscan,\nMetasploit,\nHydra,\nJohn,\nHashcat,\nDirb,\nGoBuster,\nFfuf,\nWfuzz,\nBurp Suite,\nZAP,\nWifite,\nAnd much more.\n\nI have taken the official training courses by CompTIA for Network+, A+ Core 1 and Core 2, and Pentest+.\n\nI have also taken the Official Cisco Training Courses for CCNA.\n\nSome of my most recent experience is AI in regards to Setup, Training, and Efficiency.\n\nI also have been working on my own Home Lab, which is currently running a Raspberry Pi 4b with ParrotOS which I can connect to remotely from anywhere on either my phone or my laptop.",
+    "company": "Carolina Cyber Network · Wilkes Community College"
   },
   "skills": [
-    "HTML",
-    "CSS",
-    "PHP",
-    "Python",
-    "MySQL",
+    "Network Security",
+    "Network Administration",
     "Penetration Testing",
-    "Nmap",
-    "Security Testing",
-    "VS Code",
-    "OpenCode"
+    "Python (Programming Language)",
+    "Web Development",
+    "Web Design",
+    "Information Technology",
+    "Cybersecurity",
+    "Cascading Style Sheets (CSS)",
+    "HTML5"
   ],
-  "experience": [
-    {
-      "role": "Penetration Tester",
-      "company": "Summit Gaming of Wilkes",
-      "period": "2025 — Present",
-      "description": "Security testing for summitgamingofwilkes.com - probing the site's defenses, documenting findings, and helping harden it against real-world attack paths."
-    },
-    {
-      "role": "Web Developer & Security Tester",
-      "company": "GRIMFORGE CREATIONS",
-      "period": "2024 — Present",
-      "description": "Building websites and breaking them on purpose - development paired with security testing from the first line of code."
-    },
-    {
-      "role": "Competitor, Web Design & Development",
-      "company": "SkillsUSA North Carolina",
-      "period": "2025",
-      "description": "Teammate and I placed first in the state competition, then eighth in the United States at the national competition."
-    }
-  ]
+  "experience": []
 }

@@ -1,11 +1,233 @@
 {
   "ok": true,
   "source": "file",
-  "fetchedAt": "",
+  "fetchedAt": "2026-11-12T01:42:55.785Z",
   "author": {
-    "name": "Zach Jacko",
-    "picture": ""
+    "name": "Zach (Zachary) Jacko",
+    "picture": "assets/linkedin/avatar.jpg"
   },
-  "count": 0,
-  "posts": []
+  "count": 17,
+  "posts": [
+    {
+      "id": "urn:li:activity:7523886336706068481",
+      "text": "Yall go support this 🔥🔥🔥",
+      "createdAtMs": 1793834289719,
+      "createdAt": "2026-11-04T23:18:09.719Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7523886336706068481/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7523886336706068481.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7523480379228454913",
+      "text": "REMINDER!!! Our Cyber Safety presentation is happening NEXT MONTH!  Scan that QR Code and sign up if you haven't already! Make sure your business is safe from malicious attacks that could cost you financially and legally! All are welcome! Presentation is December 4, from 1pm-3pm at Wilkes Community College in Lowe's Hall room 1709!\nLots of cool stuff planned!\nSee you there!",
+      "createdAtMs": 1793737501914,
+      "createdAt": "2026-11-03T20:25:01.914Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7523480379228454913/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7523480379228454913.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7522366952665808898",
+      "text": "I can connect via Tailscale and SSH to my home lab on my phone, but now I've implemented OpenCode into it, so now I can have my most powerful coding agent where ever I go 💪🏻",
+      "createdAtMs": 1793472040335,
+      "createdAt": "2026-10-31T18:40:40.335Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7522366952665808898/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7522366952665808898.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7521719802189582336",
+      "text": "",
+      "createdAtMs": 1793317747638,
+      "createdAt": "2026-10-29T23:49:07.638Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7521719802189582336/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7521719802189582336.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7520147910026661888",
+      "text": "HAPPY 25TH BIRTHDAY WINDOWS XP!!",
+      "createdAtMs": 1792942979342,
+      "createdAt": "2026-10-25T15:42:59.342Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7520147910026661888/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7520147910026661888.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7519824827915042816",
+      "text": "Yes. I did it.\nNo, I dont have an actual gameplan for it,\nBut hey, its cool!\n\nJust learned that you can sideload apk files on a Samsung Watch. Needing to do more research on its hardware to see how far I can take this.",
+      "createdAtMs": 1792865950564,
+      "createdAt": "2026-10-24T18:19:10.564Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7519824827915042816/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7519824827915042816.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7519551400771723264",
+      "text": "Looks like Wednesday was a hard day for everyone despite the PHP incident. Just received an email from Railway. They apparently had a big security breach and are recommending users to change passwords, swap API keys, and even check their audit logs. Thankfully I have not hosted anything on railway at this point of time, but this is a heavily used system in the Web Development community. If you did not know about this already, check your emails and make sure you stay safe in regards to this breach",
+      "createdAtMs": 1792800760453,
+      "createdAt": "2026-10-24T00:12:40.453Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7519551400771723264/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7519551400771723264.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7518846289766260739",
+      "text": "This cool little trick made class fun today, especially because our LMS runs off PHP",
+      "createdAtMs": 1792632648889,
+      "createdAt": "2026-10-22T01:30:48.889Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7518846289766260739/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7518846289766260739.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7518083740003373056",
+      "text": "Use a USB stick to transfer a file to another device? Nah, I'll just SSH into the machine that i want to put the file on and then grab the file using SFTP inside of that SSH session.",
+      "createdAtMs": 1792450842858,
+      "createdAt": "2026-10-19T23:00:42.858Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7518083740003373056/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7518083740003373056.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517680935136444416",
+      "text": "Definitely going to be an addition to my home lab",
+      "createdAtMs": 1792354806694,
+      "createdAt": "2026-10-18T20:20:06.694Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517680935136444416/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517680935136444416.gif",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517663720844730370",
+      "text": "Introduction to the world of Networking. VLSM is not my cup of tea, but we survived it",
+      "createdAtMs": 1792350702487,
+      "createdAt": "2026-10-18T19:11:42.487Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517663720844730370/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517663720844730370.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517663609628565504",
+      "text": "Switches and Routers. All alot of fun if you enjoy it. Packet Tracer because my playground during this time",
+      "createdAtMs": 1792350675971,
+      "createdAt": "2026-10-18T19:11:15.971Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517663609628565504/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517663609628565504.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517663233814695937",
+      "text": "View my verified achievement from Cisco.",
+      "createdAtMs": 1792350586370,
+      "createdAt": "2026-10-18T19:09:46.370Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517663233814695937/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517663233814695937.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517663043649003521",
+      "text": "View my verified achievement from Cisco.",
+      "createdAtMs": 1792350541031,
+      "createdAt": "2026-10-18T19:09:01.031Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517663043649003521/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517663043649003521.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7517662845078188032",
+      "text": "See you in 2027 SkillsUSA",
+      "createdAtMs": 1792350493688,
+      "createdAt": "2026-10-18T19:08:13.688Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7517662845078188032/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7517662845078188032.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7516218558327132161",
+      "text": "ATTENTION BUSINESS OWNERS, COUNTY/TOWN OFFICALS, AND WESTERN NORTH CAROLINA RESIDENTS!!! On December 4, Wilkes Community College's Carolina Cyber Network Interns are giving a FREE (that's right! completely free!!!) Cyber Safety and Security presentation about keeping your businesses, employees, and online resources safe. If you are interested, we also will he hosting as a part of the presentation a FREE Live Vulnerability assessment of your website if you sign up and select the 'Rapid Fire Assessment' checkbox at the bottom of the registration form!\n\nJoin us December 4 at 1pm to learn how your businesses could be at risk. and how to secure them!\nRegister by scanning the QR-Code at the bottom of the flyer, or by visiting https://lnkd.in/euuRiv2A\n\nHope to see you there!",
+      "createdAtMs": 1792006148893,
+      "createdAt": "2026-10-14T19:29:08.893Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7516218558327132161/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7516218558327132161.jpg",
+        "alt": ""
+      }
+    },
+    {
+      "id": "urn:li:activity:7507816870666805249",
+      "text": "HackTheBox Holmes CTF 2026 has come to a close... I am proud to report that my team and I placed top 9%, 533th place out of 5636 teams!\nShout-out to my team, the \"Pepsi Men\", for all of their non-stop hard work!",
+      "createdAtMs": 1790003030459,
+      "createdAt": "2026-09-21T15:03:50.459Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7507816870666805249/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7507816870666805249.jpg",
+        "alt": ""
+      }
+    }
+  ]
 }

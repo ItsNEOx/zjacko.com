@@ -104,6 +104,13 @@ linkedin-card {
   letter-spacing: 0.04em;
 }
 
+.li-profile-company {
+  margin: 0 0 0.35rem;
+  color: var(--muted, #8c96d6);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
 /* ---------- Sections ---------- */
 .li-summary,
 .li-skills,
@@ -124,6 +131,8 @@ linkedin-card {
 .li-summary-text {
   margin: 0;
   max-width: 68ch;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .li-empty {

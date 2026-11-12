@@ -193,15 +193,19 @@
       return null;
     }
 
-    /* Same-origin paths only (for the server's media proxy). Rejects
-       absolute URLs, protocol-relative //, schemes, ".." and "\" so the
-       API response can never point an <img> outside this origin. */
+    /* Same-origin paths only (for locally synced images and the avatar).
+       Accepts "assets/..." (GitHub Pages project paths) and "/assets/...",
+       but rejects schemes, protocol-relative //, ".." and "\" so the JSON
+       can never point an <img> outside this origin. */
     _sameOriginPath(raw) {
       var value = typeof raw === "string" ? raw.trim() : "";
-      if (!value || value.charAt(0) !== "/") {
+      if (!value) {
         return null;
       }
-      if (value.indexOf("//") === 0 || value.indexOf("..") !== -1 || value.indexOf("\\") !== -1) {
+      if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.indexOf("//") === 0) {
+        return null;
+      }
+      if (value.indexOf("..") !== -1 || value.indexOf("\\") !== -1) {
         return null;
       }
       return value;

@@ -28,13 +28,16 @@ create, edit, or delete anything on LinkedIn. See
 ```
 zjacko/                      ← site root (static files)
 ├── server.js                ← Express dev server (local development only)
-├── package.json             ← deps: express (dev server only)
+├── package.json             ← deps: express; dev-only: cheerio, playwright-core
 ├── linkedin.html            ← page with the profile card + posts feed
 ├── data/linkedin.json       ← profile data for the card
 ├── data/posts.json          ← your LinkedIn posts (the feed itself)
 ├── assets/linkedin/         ← post images + your avatar (local, CSP-safe)
 ├── tools/import-shares.js   ← sync posts from LinkedIn's data export
 ├── tools/add-post.js        ← add a single post
+├── tools/sync-linkedin.js   ← optional 4-hour sync from your PC (read-only)
+├── tools/linkedin-dom.js    ← HTML extractors used by that sync
+├── tools/register-sync-task.ps1 ← registers the 4-hour Windows Task
 ├── assets/js/linkedin-card.js    ← profile card component
 ├── assets/js/linkedin-posts.js  ← posts feed component (read-only)
 ├── assets/css/linkedin-card.css ← shared LinkedIn component styles
@@ -68,7 +71,7 @@ pages and the pages' CSP expects same-origin requests.
    - `<linkedin-card data-src="data/linkedin.json">` — the profile
      card (name, headline, summary, skills, experience). Edit that
      file to change what is shown. Set `profile.avatar` to a local
-     image path (e.g. `/assets/linkedin/avatar.png`) to show your
+     image path (e.g. `assets/linkedin/avatar.png`) to show your
      picture; leave it empty for the initials avatar.
    - `<linkedin-posts data-src="data/posts.json">` — the posts feed.
 2. Both files are same-origin, so the strict page CSP
@@ -77,7 +80,7 @@ pages and the pages' CSP expects same-origin requests.
    post text can never inject HTML into the page. `https://` URLs
    inside post text become real links; every post links back to
    LinkedIn via its permalink. Post images are local files under
-   `assets/linkedin/` (referenced by site-root paths), so nothing is
+   `assets/linkedin/` (referenced by relative paths), so nothing is
    ever loaded from LinkedIn's CDN. Images that fail to load are
    dropped instead of showing a broken-image icon.
 
@@ -135,10 +138,10 @@ post images are local files:
 
 1. Save the image into `assets/linkedin/` (any name, e.g.
    `2026-11-launch.png`).
-2. Reference it by site-root path:
+2. Reference it by relative path:
 
    ```powershell
-   node tools/add-post.js "Shipped it" https://www.linkedin.com/posts/zjacko_xyz --image /assets/linkedin/2026-11-launch.png --alt "The new site"
+   node tools/add-post.js "Shipped it" https://www.linkedin.com/posts/zjacko_xyz --image assets/linkedin/2026-11-launch.png --alt "The new site"
    ```
 
 The bulk export's `Shares.csv` has no images, so photo posts imported
@@ -170,9 +173,60 @@ want them shown.
 }
 ```
 
-`author.picture` may be a site-root path (e.g. `/assets/linkedin/avatar.png`)
-— the feed shows the initials fallback when it is empty. `media` is
-`null` or `{ "type": "IMAGE", "url": "/assets/linkedin/...", "alt": "..." }`.
+`author.picture` may be a relative path (e.g. `assets/linkedin/avatar.png`)
+- the feed shows the initials fallback when it is empty. `media` is
+`null` or `{ "type": "IMAGE", "url": "assets/linkedin/...", "alt": "..." }`.
+
+## Automatic 4-hour sync from your PC (optional)
+
+> **Account risk:** LinkedIn's User Agreement prohibits automated scraping.
+> This tool is for your own account only; running it can trigger LinkedIn
+> security checkpoints and, in the worst case, account restrictions. The
+> official export above is the risk-free route.
+
+`tools/sync-linkedin.js` keeps `data/linkedin.json` and `data/posts.json`
+word-for-word in sync with your own LinkedIn pages. It runs only on your
+PC, in a dedicated browser profile you sign into once — no passwords are
+stored anywhere, and nothing is ever written to LinkedIn.
+
+1. One-time sign-in (opens a browser window; sign in normally — including
+   any 2FA — and it continues by itself):
+
+   ```powershell
+   node tools/sync-linkedin.js --login
+   ```
+
+2. Sync now:
+
+   ```powershell
+   node tools/sync-linkedin.js --dump    # sync + save raw HTML (debugging)
+   node tools/sync-linkedin.js --push    # sync + git commit + push
+   ```
+
+3. Update every 4 hours (Windows Scheduled Task):
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tools\register-sync-task.ps1
+   ```
+
+   The task runs `node tools\sync-linkedin.js --push` every 4 hours while
+   you are signed in, commits only when something changed, and pushes so
+   your host picks it up. Remove it with
+   `schtasks /delete /tn "zjacko LinkedIn sync" /f`.
+
+Notes:
+
+- The browser session (cookies), logs, and HTML dumps live in
+  `%LOCALAPPDATA%\zjacko-linkedin-sync\` — outside the repo and never
+  uploaded. Delete that folder to sign out.
+- If the session expires the task logs it and stops; run `--login` again.
+- Posts marked "Anyone" (public) are synced; connections-only posts are
+  skipped so they never appear on the public site. `--all` overrides
+  this, but those posts become public.
+- LinkedIn's markup changes over time. If extraction breaks, `--dump`
+  saves the HTML and the selectors in `tools/linkedin-dom.js` need a
+  touch-up. `node tools/sync-linkedin.js --parse <dump-dir>` tests the
+  extractors offline.
 
 ## Security model
 
@@ -195,7 +249,12 @@ no cross-origin fetches or images anywhere.
   `//`, or `..` is rejected and the initials/no-image fallback is
   used. The CSP's `img-src 'self' data:` backs this up.
 - **No secrets in the repo.** There are none to leak: the site needs
-  no keys, and the sync tools run fully offline.
+  no keys, and the export tools run fully offline. The optional local
+  scraper keeps its browser session in
+  `%LOCALAPPDATA%\zjacko-linkedin-sync\` (outside the repo) and never
+  stores a password or access token.
+- **Read-only everywhere.** No code path can create, edit, or delete
+  anything on LinkedIn; the local scraper only reads your own pages.
 - **Dev server hardening.** `server.js` never serves repo/backend
   files (`server.js`, `package.json`, `package-lock.json`,
   `node_modules/`, `tools/`, `README`, dotfiles like `.env` and
@@ -216,6 +275,22 @@ no cross-origin fetches or images anywhere.
   `tools/add-post.js`), commit `data/posts.json` (plus any new images
   in `assets/linkedin/`) and upload it with the site.
 
+## View on GitHub Pages
+
+The site is fully static, so GitHub Pages can serve it directly:
+
+1. Make the repo **public** (Settings → General → Danger Zone) — GitHub
+   Pages on a private repo requires a paid plan.
+2. Settings → Pages → Source **Deploy from a branch** → `main` /
+   `/ (root)` → Save.
+3. It is live at <https://itsneox.github.io/zjacko.com/> a minute later.
+   All site paths are relative and `.nojekyll` keeps Pages from processing
+   files, so the site runs unchanged at the project URL.
+
+GitHub Pages ignores `.htaccess` and `_headers`, so response headers
+there are GitHub's defaults; the page CSP meta tag still enforces the
+site's own restrictions.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |
@@ -225,4 +300,4 @@ no cross-origin fetches or images anywhere.
 | Feed shows "No public posts yet" | `data/posts.json` has no posts yet — run `node tools/import-shares.js …` after requesting LinkedIn's data export, or add one with `node tools/add-post.js …`. |
 | Feed shows "Could not load data/posts.json (404)" | The file wasn't uploaded with the site — commit it and redeploy. |
 | Feed/card show "Could not load …" with a fetch error | The page was opened straight from a folder (file://), where fetch() is blocked — serve the site over HTTP(S) instead (`npm start`, or your web host). |
-| Profile picture not showing | Set `profile.avatar` in `data/linkedin.json` to a local path such as `/assets/linkedin/avatar.png` (put the file there first). Post images: attach with `tools/add-post.js --image`. |
+| Profile picture not showing | Set `profile.avatar` in `data/linkedin.json` to a local path such as `assets/linkedin/avatar.png` (put the file there first). Post images: attach with `tools/add-post.js --image`. |

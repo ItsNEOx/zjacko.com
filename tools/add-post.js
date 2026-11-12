@@ -11,7 +11,7 @@
  *   node tools/add-post.js "The post text" https://www.linkedin.com/posts/zjacko_ab12cd34 [options]
  *
  * Options:
- *   --image /assets/linkedin/photo.png   attach an image (save the file
+ *   --image assets/linkedin/photo.png    attach an image (save the file
  *                                         into assets/linkedin/ first)
  *   --alt "what the image shows"         alt text for the image
  *   --date "2026-11-10 18:30"            post date (default: now)
@@ -40,7 +40,7 @@ const DEFAULT_OUT = path.join(ROOT, "data", "posts.json");
 
 const USAGE =
   'Usage: node tools/add-post.js "<post text>" <https://www.linkedin.com/posts/... permalink> [options]\n' +
-  "  --image /assets/linkedin/photo.png   attach an image (file must exist)\n" +
+  "  --image assets/linkedin/photo.png    attach an image (file must exist)\n" +
   '  --alt "description"                  alt text for the image\n' +
   '  --date "2026-11-10 18:30"            post date (default: now)\n' +
   "  --out PATH                           target JSON (default: data/posts.json)";
@@ -189,18 +189,22 @@ function main() {
   let media = null;
   if (args.image) {
     const image = String(args.image).trim();
-    if (!image.startsWith("/") || image.startsWith("//") || image.includes("..") || image.includes("\\") || /[?#]/.test(image)) {
-      fail('The --image path must be a site-root path like /assets/linkedin/photo.png (no "..", query, or scheme).');
+    if (/^[a-z][a-z0-9+.-]*:/i.test(image) || image.startsWith("//") || image.includes("..") || image.includes("\\") || /[?#]/.test(image)) {
+      fail('The --image path must be a local site path like assets/linkedin/photo.png or /assets/linkedin/photo.png (no "..", query, or scheme).');
       return;
     }
-    const onDisk = path.join(ROOT, image.replace(/^\//, ""));
+    /* Relative on purpose: the site is also served from a GitHub Pages
+       project subpath (/zjacko.com/), where a leading slash would break.
+       A leading slash is accepted for old commands and normalized away. */
+    const relative = image.replace(/^\/+/, "");
+    const onDisk = path.join(ROOT, relative);
     if (!fs.existsSync(onDisk)) {
       fail("Image not found at " + onDisk + " — save the file there first (assets/linkedin/ is the usual place).");
       return;
     }
     media = {
       type: "IMAGE",
-      url: image,
+      url: relative,
       alt: String(args.alt || "").trim()
     };
   }
