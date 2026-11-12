@@ -19,10 +19,6 @@
   RewriteEngine On
   RewriteCond %{HTTPS} off
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-  # Never serve the OAuth token directory (written by the Node server;
-  # if the folder ever lands on this host, refuse it)
-  RewriteRule ^private(/|$) - [L,R=404]
 </IfModule>
 
 # Disable directory listing

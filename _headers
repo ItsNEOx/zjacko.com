@@ -9,9 +9,3 @@
   Cross-Origin-Embedder-Policy: require-corp
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
-
-# OAuth token directory — belt and braces if it ever gets uploaded
-# (do NOT upload it; the Node server writes private/ locally only)
-/private/*
-  X-Robots-Tag: noindex, nofollow
-  Cache-Control: no-store
