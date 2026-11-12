@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/linkedin-card.css">
   <link rel="stylesheet" href="assets/css/linkedin-posts.css">
+  <link rel="stylesheet" href="assets/css/linkedin-certifications.css">
   <script src="assets/js/head.js"></script>
 </head>
 <body>
@@ -45,21 +46,27 @@
         <p class="subtitle">The professional side of things.</p>
       </section>
 
+      <linkedin-certifications data-src="data/linkedin.json"></linkedin-certifications>
+
       <section class="section" aria-label="LinkedIn profile card">
         <linkedin-card data-src="data/linkedin.json"></linkedin-card>
       </section>
 
       <section class="section" aria-label="Recent LinkedIn posts">
-        <linkedin-posts data-src="data/posts.json"></linkedin-posts>
+        <linkedin-posts
+          data-src="data/posts.json"
+          data-limit="5"
+          data-more-url="https://www.linkedin.com/in/zjacko/recent-activity/all/"></linkedin-posts>
       </section>
 
       <section class="section">
         <p class="form-note">
           The profile card is rendered by <code>&lt;linkedin-card&gt;</code> from <code>data/linkedin.json</code>,
+          the certifications tab by <code>&lt;linkedin-certifications&gt;</code>,
           and the feed by <code>&lt;linkedin-posts&gt;</code> from <code>data/posts.json</code>.
           Both files are synced word-for-word from Zach's own LinkedIn profile every 4 hours
-          (see <code>README.md</code>). Everything is static and read-only — nothing on this
-          page can publish to LinkedIn.
+          (see <code>README.md</code>). The feed shows the 5 newest posts; the rest are on
+          LinkedIn. Everything is static and read-only — nothing on this page can publish to LinkedIn.
         </p>
       </section>
     </div>
@@ -79,6 +86,7 @@
   <script src="assets/js/navbar.js"></script>
   <script src="assets/js/terminal.js"></script>
   <script src="assets/js/linkedin-card.js"></script>
+  <script src="assets/js/linkedin-certifications.js"></script>
   <script src="assets/js/linkedin-posts.js"></script>
 </body>
 </html>

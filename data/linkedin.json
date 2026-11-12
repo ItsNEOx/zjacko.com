@@ -20,5 +20,42 @@
     "Cascading Style Sheets (CSS)",
     "HTML5"
   ],
-  "experience": []
+  "experience": [],
+  "certifications": [
+    {
+      "title": "CCNA: Introduction to Networks",
+      "issuer": "Cisco Networking Academy",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/683e3b3f-721c-4884-8e62-ffc94cc50442/linked_in_profile"
+    },
+    {
+      "title": "CCNA: Switching, Routing, and Wireless Essentials",
+      "issuer": "Cisco Networking Academy",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/90aa3b43-168e-4380-b368-56a96847d69a/linked_in_profile"
+    },
+    {
+      "title": "Networking Academy Learn-A-Thon 2025",
+      "issuer": "Cisco Networking Academy",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/ba08c880-abcf-4bc1-a15e-f2b7869fd153/linked_in_profile"
+    },
+    {
+      "title": "SkillsUSA 2026 NLSC Competitor",
+      "issuer": "SkillsUSA",
+      "issued": "Aug 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/21c57a61-d295-4aa1-b567-f1144ca0770c/linked_in_profile"
+    },
+    {
+      "title": "Cisco Networking Academy Learn-A-Thon 2026",
+      "issuer": "Cisco",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/e3639075-d33f-4f12-ac84-61cfeb8fee85/linked_in_profile"
+    }
+  ]
 }

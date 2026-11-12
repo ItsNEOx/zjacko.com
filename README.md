@@ -29,8 +29,8 @@ create, edit, or delete anything on LinkedIn. See
 zjacko/                      ← site root (static files)
 ├── server.js                ← Express dev server (local development only)
 ├── package.json             ← deps: express; dev-only: cheerio, playwright-core
-├── linkedin.html            ← page with the profile card + posts feed
-├── data/linkedin.json       ← profile data for the card
+├── linkedin.html            ← page with the profile card, certifications, + posts
+├── data/linkedin.json       ← profile data for the card + certifications tab
 ├── data/posts.json          ← your LinkedIn posts (the feed itself)
 ├── assets/linkedin/         ← post images + your avatar (local, CSP-safe)
 ├── tools/import-shares.js   ← sync posts from LinkedIn's data export
@@ -39,9 +39,11 @@ zjacko/                      ← site root (static files)
 ├── tools/linkedin-dom.js    ← HTML extractors used by that sync
 ├── tools/register-sync-task.ps1 ← registers the 4-hour Windows Task
 ├── assets/js/linkedin-card.js    ← profile card component
+├── assets/js/linkedin-certifications.js ← certifications side tab component
 ├── assets/js/linkedin-posts.js  ← posts feed component (read-only)
 ├── assets/css/linkedin-card.css ← shared LinkedIn component styles
-└── assets/css/linkedin-posts.css← feed-specific styles
+├── assets/css/linkedin-posts.css← feed-specific styles
+└── assets/css/linkedin-certifications.css ← side tab + panel styles
 ```
 
 ## Quick start
@@ -66,14 +68,22 @@ pages and the pages' CSP expects same-origin requests.
 
 ## How it works
 
-1. `linkedin.html` loads two Web Components, both fed by static,
+1. `linkedin.html` loads three Web Components, all fed by static,
    same-origin JSON files:
    - `<linkedin-card data-src="data/linkedin.json">` — the profile
      card (name, headline, summary, skills, experience). Edit that
      file to change what is shown. Set `profile.avatar` to a local
      image path (e.g. `assets/linkedin/avatar.png`) to show your
      picture; leave it empty for the initials avatar.
-   - `<linkedin-posts data-src="data/posts.json">` — the posts feed.
+   - `<linkedin-certifications data-src="data/linkedin.json">` — the
+     Certifications & Licenses side tab, rendered from the same file's
+     `certifications` array. It is docked to the right edge on wide
+     screens and becomes an inline expandable section on narrow ones;
+     when the array is empty, no tab is shown at all.
+   - `<linkedin-posts data-src="data/posts.json" data-limit="5" …>` —
+     the posts feed. `data-limit="5"` shows only the five newest posts;
+     `data-more-url` adds a **View More on LinkedIn** link to the full
+     activity page whenever the feed contains more than the limit.
 2. Both files are same-origin, so the strict page CSP
    (`connect-src 'self'`, `img-src 'self'`) stays intact.
 3. The posts component renders each post with `textContent` only —
@@ -83,6 +93,10 @@ pages and the pages' CSP expects same-origin requests.
    `assets/linkedin/` (referenced by relative paths), so nothing is
    ever loaded from LinkedIn's CDN. Images that fail to load are
    dropped instead of showing a broken-image icon.
+4. The certifications tab renders every field with `textContent` too.
+   Credential links are `https:` only and always carry
+   `rel="noopener noreferrer"`; anything else is left unlinked. The
+   tab never creates, edits, or deletes anything on LinkedIn.
 
 ## Keeping the feed in sync
 
@@ -177,6 +191,29 @@ want them shown.
 - the feed shows the initials fallback when it is empty. `media` is
 `null` or `{ "type": "IMAGE", "url": "assets/linkedin/...", "alt": "..." }`.
 
+`data/linkedin.json` holds the profile card fields plus the certifications
+shown in the side tab:
+
+```json
+{
+  "profile": { "name": "…", "headline": "…", "avatar": "…", "linkedin_url": "…" },
+  "skills": ["…"],
+  "experience": [],
+  "certifications": [
+    {
+      "title": "CCNA: Introduction to Networks",
+      "issuer": "Cisco Networking Academy",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://www.credly.com/badges/…"
+    }
+  ]
+}
+```
+
+`credentialUrl` is optional. When `certifications` is empty, the side tab
+is not rendered at all.
+
 ## Automatic 4-hour sync from your PC (optional)
 
 > **Account risk:** LinkedIn's User Agreement prohibits automated scraping.
@@ -185,9 +222,10 @@ want them shown.
 > official export above is the risk-free route.
 
 `tools/sync-linkedin.js` keeps `data/linkedin.json` and `data/posts.json`
-word-for-word in sync with your own LinkedIn pages. It runs only on your
-PC, in a dedicated browser profile you sign into once — no passwords are
-stored anywhere, and nothing is ever written to LinkedIn.
+word-for-word in sync with your own LinkedIn pages. It reads the profile,
+skills, Certifications & Licenses, and recent-activity pages, runs only on
+your PC, in a dedicated browser profile you sign into once — no passwords
+are stored anywhere, and nothing is ever written to LinkedIn.
 
 1. One-time sign-in (opens a browser window; sign in normally — including
    any 2FA — and it continues by itself):

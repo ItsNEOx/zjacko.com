@@ -1,0 +1,295 @@
+/* <linkedin-certifications> styles — the read-only Certifications &
+   Licenses side tab.
+
+   Wide screens: a vertical tab docked to the right edge opens a panel.
+   Narrow screens (<= 900px): the same control becomes an inline,
+   expandable section, so it never covers the card or the feed.
+
+   Light DOM with .li-cert-* scoped classes so the site CSP
+   (style-src 'self') stays intact — no shadow DOM, no inline styles.
+   The shared .li-btn shell is reused from linkedin-card.css. */
+
+linkedin-certifications {
+  display: contents;
+}
+
+/* ---------- Side tab ---------- */
+
+.li-cert-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: 45;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 1rem 0.62rem;
+  border: 1px solid var(--border, #242d47);
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  background: linear-gradient(180deg, var(--surface-2, #182038) 0%, var(--surface, #131a2b) 100%);
+  color: var(--text-strong, #f8f9ff);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: -8px 0 22px rgba(9, 6, 20, 0.4);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.li-cert-tab:hover,
+.li-cert-tab:focus-visible {
+  color: var(--accent-soft, #8aa2ff);
+  border-color: var(--accent-dim, #24307a);
+  background: var(--surface-2, #182038);
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.li-cert-tab:focus-visible {
+  outline: 2px solid var(--accent-soft, #8aa2ff);
+  outline-offset: 3px;
+}
+
+.li-cert-tab-count {
+  padding: 0.08rem 0.38rem;
+  border: 1px solid var(--accent-dim, #24307a);
+  border-radius: 999px;
+  background: rgba(107, 139, 255, 0.12);
+  color: var(--accent, #6b8bff);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+/* ---------- Slide-out panel ---------- */
+
+.li-cert-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  width: min(380px, 92vw);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--surface, #131a2b) 0%, var(--bg-alt, #0f1525) 100%);
+  border-left: 1px solid var(--border, #242d47);
+  box-shadow: -18px 0 40px rgba(9, 6, 20, 0.55);
+  color: var(--text, #c9d4ff);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  transform: translateX(102%);
+  visibility: hidden;
+  overscroll-behavior: contain;
+  /* visibility flips to hidden only after the slide-out finishes, so the
+     panel can animate away — but flips to visible immediately on open,
+     which keeps the close button focusable right away. */
+  transition: transform 0.24s ease, visibility 0s linear 0.24s;
+}
+
+.li-cert-panel[data-open] {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.24s ease, visibility 0s linear 0s;
+}
+
+.li-cert-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 0.95rem;
+  border-bottom: 1px solid var(--border, #242d47);
+}
+
+.li-cert-panel-title {
+  margin: 0;
+  color: var(--accent, #6b8bff);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.li-cert-close {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border, #242d47);
+  border-radius: 50%;
+  background: var(--surface-2, #182038);
+  color: var(--text, #c9d4ff);
+  font-family: inherit;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.li-cert-close:hover,
+.li-cert-close:focus-visible {
+  border-color: var(--accent-dim, #24307a);
+  background: var(--surface, #131a2b);
+  color: var(--text-strong, #f8f9ff);
+}
+
+.li-cert-close:focus-visible {
+  outline: 2px solid var(--accent-soft, #8aa2ff);
+  outline-offset: 2px;
+}
+
+.li-cert-panel-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.li-cert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.li-cert-item {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border, #242d47);
+  border-radius: 8px;
+  background: var(--surface-2, #182038);
+}
+
+.li-cert-name {
+  margin: 0 0 0.18rem;
+  color: var(--text-strong, #f8f9ff);
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.li-cert-issuer {
+  margin: 0 0 0.28rem;
+  color: var(--accent-soft, #8aa2ff);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.li-cert-date {
+  margin: 0;
+  color: var(--muted, #8c96d6);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+
+.li-cert-credential {
+  display: inline-block;
+  margin-top: 0.55rem;
+  color: var(--accent-soft, #8aa2ff);
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent-dim, #24307a);
+}
+
+.li-cert-credential:hover,
+.li-cert-credential:focus-visible {
+  color: var(--accent, #6b8bff);
+  border-bottom-style: solid;
+}
+
+.li-cert-credential:focus-visible {
+  outline: 2px solid var(--accent-soft, #8aa2ff);
+  outline-offset: 2px;
+}
+
+.li-cert-panel-foot {
+  padding: 0.9rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--border, #242d47);
+}
+
+.li-cert-all {
+  width: 100%;
+}
+
+/* ---------- Narrow screens: inline expandable section ---------- */
+
+@media (max-width: 900px) {
+  .li-cert-tab {
+    position: static;
+    writing-mode: horizontal-tb;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px solid var(--border, #242d47);
+    border-radius: var(--radius, 10px);
+    box-shadow: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    transform: none;
+  }
+
+  .li-cert-tab:hover,
+  .li-cert-tab:focus-visible {
+    transform: none;
+  }
+
+  .li-cert-panel {
+    position: static;
+    width: auto;
+    max-width: none;
+    display: none;
+    margin-top: 0.65rem;
+    border: 1px solid var(--border, #242d47);
+    border-radius: var(--radius, 10px);
+    box-shadow: none;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+
+  .li-cert-panel[data-open] {
+    display: flex;
+    transform: none;
+  }
+
+  .li-cert-panel-body {
+    overflow: visible;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .li-cert-tab,
+  .li-cert-panel,
+  .li-cert-close {
+    transition: none;
+  }
+
+  .li-cert-tab:hover,
+  .li-cert-tab:focus-visible {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+  .li-cert-tab:hover,
+  .li-cert-tab:focus-visible {
+    transform: none;
+  }
+}

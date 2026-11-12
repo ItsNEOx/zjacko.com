@@ -273,6 +273,103 @@ function extractSkills(html) {
   return skills;
 }
 
+/* ---------- certifications ---------- */
+
+/* LinkedIn wraps outbound credential links in a /safety/go/?url=… redirect.
+   Unwrap it so the site links straight to the issuer's credential page.
+   https: only — the same rule every other outbound link follows. */
+function credentialUrl(href) {
+  if (!href) {
+    return "";
+  }
+  try {
+    const outer = new URL(href, "https://www.linkedin.com");
+    const target = outer.searchParams.get("url") || href;
+    const url = new URL(target);
+    return url.protocol === "https:" ? url.href : "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function certificationsRoot($) {
+  return $("[data-testid^='profile_CertificationDetailsLevel']").first();
+}
+
+function hasCertifications(html) {
+  const $ = cheerio.load(html);
+  if (certificationsRoot($).length) {
+    return true;
+  }
+  /* An empty profile still shows the "Licenses & certifications" heading,
+     so its presence means the page loaded successfully — and the correct
+     answer is an empty list, not "keep the old cached list". */
+  let found = false;
+  $("p, h2, h3").each((i, el) => {
+    if (/licenses?\s*(?:&|and)\s*certifications/i.test(oneLine($(el).text()))) {
+      found = true;
+      return false;
+    }
+  });
+  return found;
+}
+
+/* The details/certifications/ page lists each entry in an
+   entity-collection-item container. Each one has three <p> lines —
+   title, issuer, "Issued <month year>" — plus an optional credential
+   link. Expiry dates ("Expires …") are kept when LinkedIn shows them. */
+function extractCertifications(html) {
+  const $ = cheerio.load(html);
+  const root = certificationsRoot($);
+  if (!root.length) {
+    return [];
+  }
+
+  const items = [];
+  const seen = new Set();
+  root.find("[componentkey^='entity-collection-item']").each((i, el) => {
+    const item = $(el);
+    if (item.parents("[componentkey^='entity-collection-item']").length) {
+      return; /* top-level entries only */
+    }
+
+    const lines = item
+      .find("p")
+      .map((j, p) => oneLine($(p).text()))
+      .get()
+      .filter((value) => value && !/^licenses? (?:&|and) certifications$/i.test(value));
+    if (!lines.length) {
+      return;
+    }
+
+    const title = lines[0] || "";
+    const issued = (lines.find((line) => /^issued\b/i.test(line)) || "").replace(/^issued\s*/i, "");
+    const expires = (lines.find((line) => /^expires\b/i.test(line)) || "").replace(/^expires\s*/i, "");
+    const issuer =
+      lines.slice(1).find((line) => !/^(?:issued|expires)\b/i.test(line)) || "";
+
+    if (!title) {
+      return;
+    }
+    const key = title + "|" + issuer;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+
+    const link = item.find("a[aria-label^='Show credential']").first();
+    items.push({
+      title,
+      issuer,
+      issued: issued.trim(),
+      expires: expires.trim(),
+      credentialUrl: link.length ? credentialUrl(decodeAttr(link.attr("href") || "")) : "",
+    });
+  });
+
+  return items;
+}
+
 /* ---------- posts ---------- */
 
 function urnFromLink(href, type) {
@@ -488,6 +585,8 @@ module.exports = {
   extractProfile,
   extractExperience,
   extractSkills,
+  extractCertifications,
   extractPosts,
   hasProfileSection,
+  hasCertifications,
 };

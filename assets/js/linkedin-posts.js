@@ -4,7 +4,13 @@
    attached images, and a permalink to the original post.
 
    Usage:
-     <linkedin-posts data-src="data/posts.json"></linkedin-posts>
+     <linkedin-posts data-src="data/posts.json"
+                     data-limit="5"
+                     data-more-url="https://www.linkedin.com/in/zjacko/recent-activity/all/"></linkedin-posts>
+
+   data-limit shows only the newest N posts (omit it to show every post);
+   when the feed has more, data-more-url adds a "View More on LinkedIn"
+   link to the full activity page. Both are optional.
 
    data-src points at a static, same-origin JSON file: data/posts.json,
    a local read-only copy of the site owner's LinkedIn posts (text,
@@ -57,7 +63,7 @@
 
   class LinkedInPosts extends HTMLElement {
     static get observedAttributes() {
-      return ["data-src"];
+      return ["data-src", "data-limit", "data-more-url"];
     }
 
     constructor() {
@@ -345,11 +351,47 @@
         return;
       }
 
+      /* Newest first, regardless of the order the file happens to use. */
+      var allPosts = data.posts.slice().sort(function (a, b) {
+        var aMs = Number(a && a.createdAtMs);
+        var bMs = Number(b && b.createdAtMs);
+        if (!Number.isFinite(aMs)) aMs = 0;
+        if (!Number.isFinite(bMs)) bMs = 0;
+        return bMs - aMs;
+      });
+
+      /* data-limit="5" shows the five newest; anything above zero is a
+         valid limit, and an absent/invalid value means "show all". */
+      var parsedLimit = parseInt(this.getAttribute("data-limit") || "", 10);
+      var limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 0;
+      var shown = limit ? allPosts.slice(0, limit) : allPosts;
+
       var list = this._el("ol", "li-feed-list");
-      data.posts.forEach(function (post) {
+      shown.forEach(function (post) {
         list.appendChild(this._renderPost(post, author));
       }, this);
       card.appendChild(list);
+
+      /* Everything beyond the limit is one click away on LinkedIn. */
+      if (shown.length < allPosts.length) {
+        var moreUrl = this._httpsUrl(this.getAttribute("data-more-url"));
+        if (moreUrl) {
+          var footer = this._el("footer", "li-feed-more");
+          footer.appendChild(
+            this._el(
+              "span",
+              "li-feed-more-count",
+              "Showing the " + shown.length + " newest of " + allPosts.length + " posts"
+            )
+          );
+          var more = this._el("a", "li-btn li-feed-more-link", "View More on LinkedIn \u2197");
+          more.href = moreUrl;
+          more.target = "_blank";
+          more.rel = "noopener noreferrer";
+          footer.appendChild(more);
+          card.appendChild(footer);
+        }
+      }
 
       this.replaceChildren(card);
     }

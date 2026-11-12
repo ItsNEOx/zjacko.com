@@ -5,9 +5,9 @@
  * -------------------------------------------------------------------------
  * Runs on the owner's PC only. It drives a dedicated Chrome/Edge profile
  * that the owner signs into ONCE (no passwords are stored anywhere), reads
- * the owner's own profile + activity pages, and writes them into
- * data/linkedin.json and data/posts.json. It never creates, edits, or
- * deletes anything on LinkedIn.
+ * the owner's own profile, skills, certifications, and activity pages, and
+ * writes them into data/linkedin.json and data/posts.json. It never
+ * creates, edits, or deletes anything on LinkedIn.
  *
  * WARNING — read before using:
  *   LinkedIn's User Agreement prohibits automated scraping. Running this
@@ -380,6 +380,7 @@ async function probeVisibility(context, permalink) {
 async function sync(pages, options) {
   const profileHtml = pages.profile || "";
   const skillsHtml = pages.skills || "";
+  const certificationsHtml = pages.certifications || "";
   const postsHtml = pages.posts || "";
   const ownerPath = options.ownerPath || "/";
 
@@ -387,6 +388,8 @@ async function sync(pages, options) {
   const experience = dom.extractExperience(profileHtml);
   const experienceFound = dom.hasProfileSection(profileHtml, "Experience");
   const aboutFound = dom.hasProfileSection(profileHtml, "About");
+  const certifications = dom.extractCertifications(certificationsHtml);
+  const certificationsFound = dom.hasCertifications(certificationsHtml);
   const skills = dom.extractSkills(skillsHtml);
   const foundPosts = dom.extractPosts(postsHtml, { ownerPath, now: Date.now() });
 
@@ -396,6 +399,7 @@ async function sync(pages, options) {
     !scraped.summary &&
     !skills.length &&
     !experience.length &&
+    !certifications.length &&
     !foundPosts.length
   ) {
     throw new Error(
@@ -408,6 +412,7 @@ async function sync(pages, options) {
     profile: {},
     skills: [],
     experience: [],
+    certifications: [],
   });
   const currentProfile = current.profile || {};
 
@@ -435,10 +440,16 @@ async function sync(pages, options) {
     /* No Experience section on LinkedIn means no experience entries on the
        site either — old hand-written entries must not survive the sync. */
     experience: experience,
+    /* The certifications page always has the section header; if the page
+       itself was unreadable, keep the last good copy instead of wiping it. */
+    certifications: certificationsFound ? certifications : current.certifications || [],
   };
 
   if (experienceFound && !experience.length) {
     log("Experience section found but no entries could be read — check the markup.");
+  }
+  if (certificationsFound && !certifications.length) {
+    log("Certifications section found but no entries could be read — check the markup.");
   }
 
   const profileChanged = !sameJson(nextLinkedin, current);
@@ -630,6 +641,7 @@ function parseOffline(directory) {
     profile: dom.extractProfile(read("profile")),
     experience: dom.extractExperience(read("profile")),
     skills: dom.extractSkills(read("skills")),
+    certifications: dom.extractCertifications(read("certifications")),
     posts: dom.extractPosts(read("posts"), {
       ownerPath: ownerPathFrom(url),
       now: Date.now(),
@@ -665,6 +677,7 @@ async function main() {
       {
         profile: url,
         skills: url + "details/skills/",
+        certifications: url + "details/certifications/",
         posts: url + "recent-activity/all/",
       },
       dump
