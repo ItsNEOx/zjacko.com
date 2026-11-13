@@ -1,13 +1,26 @@
 {
   "ok": true,
   "source": "file",
-  "fetchedAt": "2026-11-12T01:42:55.785Z",
+  "fetchedAt": "2026-11-13T17:10:40.724Z",
   "author": {
     "name": "Zach (Zachary) Jacko",
     "picture": "assets/linkedin/avatar.jpg"
   },
-  "count": 17,
+  "count": 18,
   "posts": [
+    {
+      "id": "urn:li:activity:7527047950372585473",
+      "text": "Recently saw a video with Ryan Montgomery about the RayHunter, which inspired me to make my own! Managed to get my hands on a Verison Orbic for only $5 from Vinted. Just finished adding RayHunter to it and I am happy with the results!",
+      "createdAtMs": 1794588077157,
+      "createdAt": "2026-11-13T16:41:17.157Z",
+      "visibility": "PUBLIC",
+      "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7527047950372585473/",
+      "media": {
+        "type": "IMAGE",
+        "url": "assets/linkedin/post-7527047950372585473.jpg",
+        "alt": ""
+      }
+    },
     {
       "id": "urn:li:activity:7523886336706068481",
       "text": "Yall go support this 🔥🔥🔥",
