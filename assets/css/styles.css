@@ -55,6 +55,23 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Dark base colour: paints the canvas (including the overscroll area)
+     before any gradient or canvas layer is ready, so fast scrolling can
+     never reveal a white frame. */
+  color-scheme: dark;
+  background-color: #0b0f19;
+  overscroll-behavior-y: none;
+}
+
+/* Fixed backdrop: hue gradient + star field. Kept on its own fixed layer
+   instead of background-attachment: fixed so the compositor can cache it
+   and scrolling does not force a full-viewport repaint. */
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
   background:
     /* faint star specks (two offset fields for depth) */
     radial-gradient(circle, rgba(255, 255, 255, 0.4) 1px, transparent 1.6px),
@@ -100,7 +117,6 @@ html {
     0 0,
     0 0,
     0 0;
-  background-attachment: fixed;
 }
 
 body {
@@ -114,6 +130,7 @@ body {
   font-size: 17px;
   line-height: 1.65;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 ::selection {
@@ -988,6 +1005,13 @@ html:not(.js) .nav-links a[aria-current="page"] {
   to { background-position: -120% 0; }
 }
 
+/* Paused offscreen (toggled by main.js): keeps the effect but stops the
+   paint work while the footer/hero are out of view. */
+.site-footer.is-paused::after,
+.hero-title.is-paused {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-footer::after { display: none; }
 }
@@ -1016,6 +1040,16 @@ html:not(.js) .nav-links a[aria-current="page"] {
   color: var(--text-strong);
 }
 
+/* The floating terminal button (60px) sits in the bottom-right corner.
+   On narrower desktop/tablet widths the right-aligned footer links would
+   land under it, so reserve that gutter. Phones switch to the stacked
+   layout and clear the button with extra bottom padding instead. */
+@media (min-width: 761px) and (max-width: 1216px) {
+  .footer-inner {
+    padding-right: calc(1.25rem + 5rem);
+  }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   .contact-grid {
@@ -1036,6 +1070,12 @@ html:not(.js) .nav-links a[aria-current="page"] {
   .footer-inner a {
     display: inline-block;
     padding: 0.55rem 0.15rem;
+  }
+
+  /* Clear the floating terminal button so it never sits on top of the
+     footer links when the page is scrolled to the bottom. */
+  .site-footer {
+    padding-bottom: calc(1.9rem + 4.5rem);
   }
 
   /* iOS zooms the page when a focused field is under 16px. */
@@ -1123,25 +1163,29 @@ html:not(.js) .nav-links a[aria-current="page"] {
    Techy effects & details
    ========================================================= */
 
-/* Fixed backdrop: drifting grid (the hue gradient lives on <html>) */
+/* Fixed backdrop: drifting grid (the hue gradient lives on html::before) */
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  /* Oversized by one grid cell so the drift never exposes an edge. */
+  inset: -48px;
   z-index: -2;
   pointer-events: none;
   background-image:
     linear-gradient(rgba(138, 122, 232, 0.07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(138, 122, 232, 0.07) 1px, transparent 1px);
   background-size: 48px 48px, 48px 48px;
-  -webkit-mask-image: radial-gradient(ellipse 100% 78% at 50% 0%, #000 0%, transparent 78%);
-  mask-image: radial-gradient(ellipse 100% 78% at 50% 0%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 100% 78% at 50% 48px, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 100% 78% at 50% 48px, #000 0%, transparent 78%);
+  /* Animate a transform (compositor-only) instead of background-position,
+     which repainted the whole viewport every frame. */
+  will-change: transform;
   animation: grid-drift 24s linear infinite;
 }
 
 @keyframes grid-drift {
   to {
-    background-position: 48px 48px, 48px 48px;
+    transform: translate3d(48px, 48px, 0);
   }
 }
 
@@ -1613,6 +1657,8 @@ body.shell-dragging * {
   height: 100%;
   pointer-events: none;
   opacity: 0.52;
+  /* The canvas is painted once; all motion is compositor-only. */
+  will-change: transform, opacity;
   animation:
     nebula-drift 64s ease-in-out infinite alternate,
     nebula-breathe 19s ease-in-out infinite alternate;

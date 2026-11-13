@@ -19,6 +19,22 @@
       el.textContent = year;
     });
 
+    /* Keep decorative animations out of the compositor's way while their
+       element is far offscreen (the effect is unchanged when visible). */
+    if ("IntersectionObserver" in window) {
+      var pauseObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          entry.target.classList.toggle("is-paused", !entry.isIntersecting);
+        });
+      }, { rootMargin: "150px 0px" });
+      [".hero-title", ".site-footer"].forEach(function (selector) {
+        var target = document.querySelector(selector);
+        if (target) {
+          pauseObserver.observe(target);
+        }
+      });
+    }
+
     /* Contact form: build a mailto link safely (no server, no injection surface) */
     var form = document.getElementById("contact-form");
     if (form) {

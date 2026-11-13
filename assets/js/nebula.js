@@ -208,17 +208,36 @@
   }
 
   var resizeTimer = null;
+  var lastW = 0;
+  var lastH = 0;
+
+  /* Mobile browsers fire resize as the address bar hides/shows while you
+     scroll. Repainting the whole nebula for a height-only change made the
+     background visibly "reload" mid-scroll, so keep the existing artwork
+     and let CSS scale the canvas to the new viewport. Repaint only when the
+     width changes (orientation/resize) or the height change is large. */
   window.addEventListener("resize", function () {
     if (resizeTimer) {
       clearTimeout(resizeTimer);
     }
     resizeTimer = setTimeout(function () {
+      var nextW = window.innerWidth;
+      var nextH = window.innerHeight;
+      var widthChanged = nextW !== lastW;
+      var bigHeightChange = !lastH || Math.abs(nextH - lastH) > lastH * 0.3;
+      if (!widthChanged && !bigHeightChange) {
+        return;
+      }
+      lastW = nextW;
+      lastH = nextH;
       DPR = Math.min(window.devicePixelRatio || 1, 1.5);
       sizeCanvas();
       paint();
     }, 160);
   }, { passive: true });
 
+  lastW = window.innerWidth;
+  lastH = window.innerHeight;
   sizeCanvas();
   paint();
 })();

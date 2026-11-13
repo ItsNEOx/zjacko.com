@@ -18,12 +18,18 @@
 
   var COLOR = "138, 122, 232";
   var MAX_LINK = 132;
+  var MAX_LINK_SQ = MAX_LINK * MAX_LINK;
+  var LINK_BANDS = 6;
   var MOUSE_RADIUS = 175;
 
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   var w = 0;
   var h = 0;
   var particles = [];
+  var linkBands = [];
+  for (var band = 0; band < LINK_BANDS; band++) {
+    linkBands.push([]);
+  }
   var mouse = { x: -9999, y: -9999, active: false };
   var rafId = null;
   var running = false;
@@ -54,7 +60,7 @@
   function render() {
     ctx.clearRect(0, 0, w, h);
 
-    var i, j, a, b, dx, dy, d2, alpha;
+    var i, j, a, b, dx, dy, d2, band, points;
 
     for (i = 0; i < particles.length; i++) {
       a = particles[i];
@@ -78,6 +84,12 @@
       }
     }
 
+    /* Collect links into a few alpha bands so the whole network is drawn
+       with ~6 strokes instead of one stroke per link. Visually identical
+       at this scale, much cheaper on phones. */
+    for (band = 0; band < LINK_BANDS; band++) {
+      linkBands[band].length = 0;
+    }
     for (i = 0; i < particles.length; i++) {
       a = particles[i];
       for (j = i + 1; j < particles.length; j++) {
@@ -85,23 +97,39 @@
         dx = a.x - b.x;
         dy = a.y - b.y;
         d2 = dx * dx + dy * dy;
-        if (d2 < MAX_LINK * MAX_LINK) {
-          alpha = (1 - Math.sqrt(d2) / MAX_LINK) * 0.45;
-          ctx.strokeStyle = "rgba(" + COLOR + "," + alpha.toFixed(3) + ")";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
+        if (d2 < MAX_LINK_SQ) {
+          band = ((1 - Math.sqrt(d2) / MAX_LINK) * LINK_BANDS) | 0;
+          if (band >= LINK_BANDS) {
+            band = LINK_BANDS - 1;
+          }
+          points = linkBands[band];
+          points.push(a.x, a.y, b.x, b.y);
         }
       }
     }
 
+    ctx.strokeStyle = "rgba(" + COLOR + ",1)";
+    ctx.lineWidth = 1;
+    for (band = 0; band < LINK_BANDS; band++) {
+      points = linkBands[band];
+      if (!points.length) {
+        continue;
+      }
+      ctx.globalAlpha = ((band + 0.5) / LINK_BANDS) * 0.45;
+      ctx.beginPath();
+      for (i = 0; i < points.length; i += 4) {
+        ctx.moveTo(points[i], points[i + 1]);
+        ctx.lineTo(points[i + 2], points[i + 3]);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "rgba(" + COLOR + ",0.75)";
     for (i = 0; i < particles.length; i++) {
       a = particles[i];
       ctx.beginPath();
       ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(" + COLOR + ",0.75)";
       ctx.fill();
     }
 
@@ -114,7 +142,7 @@
         var cy = a.y - mouse.y;
         var cd = Math.sqrt(cx * cx + cy * cy);
         if (cd < MOUSE_RADIUS) {
-          alpha = (1 - cd / MOUSE_RADIUS) * 0.55;
+          var alpha = (1 - cd / MOUSE_RADIUS) * 0.55;
           var hue = (hueBase + (i / particles.length) * 360) % 360;
           ctx.strokeStyle = "hsla(" + hue.toFixed(0) + ",85%,68%," + alpha.toFixed(3) + ")";
           ctx.lineWidth = 1;
@@ -152,15 +180,36 @@
     }
   }
 
+  function clampParticles() {
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      if (p.x < 0) { p.x = 0; } else if (p.x > w) { p.x = w; }
+      if (p.y < 0) { p.y = 0; } else if (p.y > h) { p.y = h; }
+    }
+  }
+
   var resizeTimer = null;
   function onResize() {
     if (resizeTimer) {
       clearTimeout(resizeTimer);
     }
     resizeTimer = setTimeout(function () {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var nextW = window.innerWidth;
+      var nextH = window.innerHeight;
+      var widthChanged = nextW !== w;
+      var bigHeightChange = !h || Math.abs(nextH - h) > h * 0.3;
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      w = nextW;
+      h = nextH;
       sizeCanvas();
-      makeParticles();
+      if (widthChanged || bigHeightChange) {
+        makeParticles();
+      } else {
+        /* Address-bar hide/show while scrolling: keep the existing field
+           instead of respawning it (which read as the background
+           "reloading" mid-scroll). */
+        clampParticles();
+      }
       render();
     }, 150);
   }

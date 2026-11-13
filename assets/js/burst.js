@@ -17,7 +17,7 @@
     return;
   }
 
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   var w = 0;
   var h = 0;
   var bursts = [];
@@ -300,7 +300,7 @@
   );
 
   window.addEventListener("resize", function () {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     sizeCanvas();
   }, { passive: true });
 
