@@ -279,6 +279,13 @@ linkedin-posts {
   .li-feed-more-link {
     width: 100%;
   }
+
+  .li-feed-permalink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0.4rem 0.9rem;
+  }
 }
 
 /* ---------- Reduced motion ---------- */

@@ -501,7 +501,7 @@ html:not(.js) .nav-links a[aria-current="page"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 520px;
+  width: min(520px, 100vw);
   height: 260px;
   background: radial-gradient(
     ellipse,
@@ -851,7 +851,7 @@ html:not(.js) .nav-links a[aria-current="page"] {
   border-radius: 8px;
   color: var(--text);
   font-family: inherit;
-  font-size: 0.97rem;
+  font-size: 1rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1023,7 +1023,24 @@ html:not(.js) .nav-links a[aria-current="page"] {
   }
 
   .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem 0.7rem;
+  }
+
+  /* Footer links are inline text on desktop; give them a real touch target
+     on phones without changing the single-line layout. */
+  .footer-inner a {
     display: inline-block;
+    padding: 0.55rem 0.15rem;
+  }
+
+  /* iOS zooms the page when a focused field is under 16px. */
+  .shell-input {
+    font-size: 1rem;
   }
 
   /* Collapsible glass dropdown below the pill (spec: mobile keeps the
@@ -1048,6 +1065,12 @@ html:not(.js) .nav-links a[aria-current="page"] {
 
   .nav-links.open {
     display: flex;
+    /* On short landscape screens the menu scrolls instead of running
+       off the bottom of the fixed navbar. */
+    max-height: calc(100vh - 6rem);
+    max-height: calc(100svh - 6rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .nav-links a {
@@ -1537,6 +1560,12 @@ body.shell-dragging * {
 }
 
 @media (max-width: 560px) {
+  /* Scale the hero wordmark so the whole title fits on a phone instead
+     of being clipped at the right edge. */
+  .hero-title {
+    font-size: clamp(2.3rem, 12.5vw, 3.5rem);
+  }
+
   .shell-panel {
     left: calc(0.75rem + env(safe-area-inset-left, 0px));
     right: calc(0.75rem + env(safe-area-inset-right, 0px));

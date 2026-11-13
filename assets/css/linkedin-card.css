@@ -175,7 +175,11 @@ linkedin-card {
   border: 1px solid var(--border, #242d47);
   border-radius: 999px;
   padding: 0.28rem 0.75rem;
-  white-space: nowrap;
+  /* Very long skill names wrap inside the pill on narrow phones instead
+     of pushing past the card edge. */
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Experience timeline ---------- */
