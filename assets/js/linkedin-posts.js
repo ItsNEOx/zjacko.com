@@ -459,28 +459,65 @@
         item.appendChild(paragraph);
       }
 
-      /* Attached image, served through the server's media proxy. */
+      /* Attached media. Videos mirrored by the sync play inline; when a
+         video stream could not be mirrored, its poster opens the post on
+         LinkedIn instead of looking like a plain image. */
       var media = post.media && typeof post.media === "object" ? post.media : null;
-      var mediaSrc = media ? this._sameOriginPath(media.url) : null;
-      if (mediaSrc) {
-        var figure = this._el("figure", "li-feed-figure");
-        var img = document.createElement("img");
-        img.className = "li-feed-media";
-        img.alt = typeof media.alt === "string" ? media.alt : "";
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.addEventListener("error", function () {
-          /* Never show a broken-image icon — drop the frame. */
-          if (figure.parentNode) {
-            figure.parentNode.removeChild(figure);
-          }
-        });
-        figure.appendChild(img);
-        item.appendChild(figure);
-        img.src = mediaSrc;
-      }
-
       var permalink = this._httpsUrl(post.permalink);
+      if (media) {
+        var isVideo = media.type === "VIDEO";
+        var videoSrc = isVideo ? this._sameOriginPath(media.url) : null;
+        var posterSrc = this._sameOriginPath(isVideo ? media.poster : media.url);
+
+        if (isVideo && videoSrc) {
+          var videoFigure = this._el("figure", "li-feed-figure li-feed-figure--video");
+          var video = document.createElement("video");
+          video.className = "li-feed-video";
+          video.controls = true;
+          video.playsInline = true;
+          video.preload = "metadata";
+          if (posterSrc) {
+            video.poster = posterSrc;
+          }
+          var self = this;
+          var fallBack = function () {
+            var poster = self._renderVideoPoster(media, permalink);
+            if (poster && videoFigure.parentNode) {
+              videoFigure.parentNode.replaceChild(poster, videoFigure);
+            } else if (videoFigure.parentNode) {
+              videoFigure.parentNode.removeChild(videoFigure);
+            }
+          };
+          video.addEventListener("error", fallBack);
+          var source = document.createElement("source");
+          source.src = videoSrc;
+          source.type = "video/mp4";
+          source.addEventListener("error", fallBack);
+          video.appendChild(source);
+          videoFigure.appendChild(video);
+          item.appendChild(videoFigure);
+        } else if (posterSrc) {
+          if (isVideo) {
+            item.appendChild(this._renderVideoPoster(media, permalink));
+          } else {
+            var figure = this._el("figure", "li-feed-figure");
+            var img = document.createElement("img");
+            img.className = "li-feed-media";
+            img.alt = typeof media.alt === "string" ? media.alt : "";
+            img.loading = "lazy";
+            img.decoding = "async";
+            img.addEventListener("error", function () {
+              /* Never show a broken-image icon — drop the frame. */
+              if (figure.parentNode) {
+                figure.parentNode.removeChild(figure);
+              }
+            });
+            figure.appendChild(img);
+            item.appendChild(figure);
+            img.src = posterSrc;
+          }
+        }
+      }
       if (permalink) {
         var link = this._el("a", "li-feed-permalink", "View on LinkedIn \u2197");
         link.href = permalink;
@@ -490,6 +527,44 @@
       }
 
       return item;
+    }
+
+    /* Poster for a video that could not be mirrored. The whole image is a
+       link to the post on LinkedIn, with a decorative play badge. */
+    _renderVideoPoster(media, permalink) {
+      var posterSrc = media ? this._sameOriginPath(media.poster) : null;
+      if (!posterSrc) {
+        return null;
+      }
+      var figure = this._el("figure", "li-feed-figure li-feed-figure--video");
+      var img = document.createElement("img");
+      img.className = "li-feed-media";
+      img.alt = typeof media.alt === "string" ? media.alt : "";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.addEventListener("error", function () {
+        if (figure.parentNode) {
+          figure.parentNode.removeChild(figure);
+        }
+      });
+
+      if (permalink) {
+        var link = this._el("a", "li-feed-video-link");
+        link.href = permalink;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.setAttribute("aria-label", "Watch video on LinkedIn");
+        link.appendChild(img);
+        var badge = this._el("span", "li-feed-play-badge", "\u25b6");
+        badge.setAttribute("aria-hidden", "true");
+        link.appendChild(badge);
+        figure.appendChild(link);
+      } else {
+        figure.appendChild(img);
+      }
+
+      img.src = posterSrc;
+      return figure;
     }
 
     _renderTime(post, ms) {

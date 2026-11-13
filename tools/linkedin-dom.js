@@ -558,6 +558,14 @@ function extractPosts(html, options) {
     const imageUrls = mediaImg.length ? imageSources($, mediaImg) : [];
     const imageUrl = imageUrls[0] || "";
 
+    /* A post with a <video> player is a native LinkedIn video. Its poster
+       image is all the HTML exposes (the stream itself is blob-backed and
+       comes from signed segment requests), but the video's public id is in
+       the videocover URL — the sync uses it to match the captured stream. */
+    const isVideo = item.find("video").length > 0;
+    const videoIdMatch = /\/dms\/image\/[^/]+\/([^/]+)\/videocover/i.exec(imageUrl);
+    const videoId = isVideo && videoIdMatch ? videoIdMatch[1] : "";
+
     const key = permalink || id;
     if (byKey.has(key)) {
       const existing = byKey.get(key);
@@ -575,6 +583,7 @@ function extractPosts(html, options) {
       permalink,
       imageUrl,
       imageUrls,
+      videoId,
     });
   });
 

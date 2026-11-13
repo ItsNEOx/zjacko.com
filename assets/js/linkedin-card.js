@@ -302,12 +302,24 @@
       header.appendChild(idBlock);
       card.appendChild(header);
 
-      /* Summary */
+      /* Summary — clamped to 6 lines by CSS; the rest is one click away
+         on LinkedIn. */
       if (summary) {
         var about = this._el("section", "li-summary");
         about.setAttribute("aria-label", "Summary");
         about.appendChild(this._el("h3", "li-section-title", "About"));
         about.appendChild(this._el("p", "li-summary-text", summary));
+        if (profileUrl) {
+          var moreAbout = this._el(
+            "a",
+            "li-btn li-btn--ghost li-summary-more",
+            "View More on LinkedIn \u2197"
+          );
+          moreAbout.href = profileUrl;
+          moreAbout.target = "_blank";
+          moreAbout.rel = "noopener noreferrer";
+          about.appendChild(moreAbout);
+        }
         card.appendChild(about);
       }
 

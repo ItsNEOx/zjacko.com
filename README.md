@@ -72,9 +72,11 @@ pages and the pages' CSP expects same-origin requests.
    same-origin JSON files:
    - `<linkedin-card data-src="data/linkedin.json">` — the profile
      card (name, headline, summary, skills, experience). Edit that
-     file to change what is shown. Set `profile.avatar` to a local
-     image path (e.g. `assets/linkedin/avatar.png`) to show your
-     picture; leave it empty for the initials avatar.
+     file to change what is shown. The About text is clamped to its
+     first six lines, with a **View More on LinkedIn** link to the full
+     profile underneath. Set `profile.avatar` to a local image path
+     (e.g. `assets/linkedin/avatar.png`) to show your picture; leave it
+     empty for the initials avatar.
    - `<linkedin-certifications data-src="data/linkedin.json">` — the
      Certifications & Licenses side tab, rendered from the same file's
      `certifications` array. It is docked to the right edge on wide
@@ -85,14 +87,17 @@ pages and the pages' CSP expects same-origin requests.
      `data-more-url` adds a **View More on LinkedIn** link to the full
      activity page whenever the feed contains more than the limit.
 2. Both files are same-origin, so the strict page CSP
-   (`connect-src 'self'`, `img-src 'self'`) stays intact.
+   (`connect-src 'self'`, `img-src 'self'`, `media-src 'self'`) stays
+   intact.
 3. The posts component renders each post with `textContent` only —
    post text can never inject HTML into the page. `https://` URLs
    inside post text become real links; every post links back to
-   LinkedIn via its permalink. Post images are local files under
-   `assets/linkedin/` (referenced by relative paths), so nothing is
-   ever loaded from LinkedIn's CDN. Images that fail to load are
-   dropped instead of showing a broken-image icon.
+   LinkedIn via its permalink. Post images and videos are local files
+   under `assets/linkedin/` (referenced by relative paths), so nothing
+   is ever loaded from LinkedIn's CDN. Images that fail to load are
+   dropped instead of showing a broken-image icon. Video posts play
+   inline with native controls; if a video could not be mirrored, its
+   poster image opens the post on LinkedIn with a play badge.
 4. The certifications tab renders every field with `textContent` too.
    Credential links are `https:` only and always carry
    `rel="noopener noreferrer"`; anything else is left unlinked. The
@@ -189,7 +194,10 @@ want them shown.
 
 `author.picture` may be a relative path (e.g. `assets/linkedin/avatar.png`)
 - the feed shows the initials fallback when it is empty. `media` is
-`null` or `{ "type": "IMAGE", "url": "assets/linkedin/...", "alt": "..." }`.
+`null`, `{ "type": "IMAGE", "url": "assets/linkedin/...", "alt": "..." }`,
+or `{ "type": "VIDEO", "url": "assets/linkedin/....mp4", "poster":
+"assets/linkedin/....jpg", "videoId": "...", "alt": "" }`. A video with
+an empty `url` could not be mirrored; its poster links to the post.
 
 `data/linkedin.json` holds the profile card fields plus the certifications
 shown in the side tab:
@@ -261,6 +269,11 @@ Notes:
 - Posts marked "Anyone" (public) are synced; connections-only posts are
   skipped so they never appear on the public site. `--all` overrides
   this, but those posts become public.
+- Native video posts are mirrored as local MP4s (up to 40 MB / 10
+  minutes each) by letting LinkedIn's own player stream them and
+  collecting the signed segments; a longer or failed stream keeps its
+  poster image, which links to the post on LinkedIn. Already-mirrored
+  videos are not downloaded again.
 - LinkedIn's markup changes over time. If extraction breaks, `--dump`
   saves the HTML and the selectors in `tools/linkedin-dom.js` need a
   touch-up. `node tools/sync-linkedin.js --parse <dump-dir>` tests the
@@ -269,7 +282,8 @@ Notes:
 ## Security model
 
 The site's strict CSP (`default-src 'none'; script-src 'self';
-style-src 'self'; img-src 'self' data:; connect-src 'self'; …`) is the
+style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src
+'self'; …`) is the
 first layer: no inline scripts or styles, no CDNs, no frameworks, and
 no cross-origin fetches or images anywhere.
 

@@ -1,7 +1,7 @@
 {
   "ok": true,
   "source": "file",
-  "fetchedAt": "2026-11-13T17:10:40.724Z",
+  "fetchedAt": "2026-11-13T21:47:48.359Z",
   "author": {
     "name": "Zach (Zachary) Jacko",
     "picture": "assets/linkedin/avatar.jpg"
@@ -55,9 +55,11 @@
       "visibility": "PUBLIC",
       "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7522366952665808898/",
       "media": {
-        "type": "IMAGE",
-        "url": "assets/linkedin/post-7522366952665808898.jpg",
-        "alt": ""
+        "type": "VIDEO",
+        "url": "assets/linkedin/post-7522366952665808898.mp4",
+        "videoId": "D4E05AQEy1fwD4W6Kng",
+        "alt": "",
+        "poster": "assets/linkedin/post-7522366952665808898.jpg"
       }
     },
     {
@@ -120,9 +122,11 @@
       "visibility": "PUBLIC",
       "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7518846289766260739/",
       "media": {
-        "type": "IMAGE",
-        "url": "assets/linkedin/post-7518846289766260739.jpg",
-        "alt": ""
+        "type": "VIDEO",
+        "url": "assets/linkedin/post-7518846289766260739.mp4",
+        "videoId": "D5605AQGZHTV_2ujs5w",
+        "alt": "",
+        "poster": "assets/linkedin/post-7518846289766260739.jpg"
       }
     },
     {

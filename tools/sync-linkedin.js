@@ -233,11 +233,130 @@ async function autoScroll(page) {
   await page.waitForTimeout(500);
 }
 
-async function collectPages(context, urls, dump) {
+/* ---------- video capture ---------- */
+
+/* LinkedIn plays video through a blob: URL backed by signed fMP4 segment
+   requests to dms.licdn.com. The HTML never contains the stream URL, so
+   record every segment response while the player fetches them. The id in
+   the request path (the same id as the post's videocover image) ties each
+   segment to its post. */
+function captureVideoSegments(page) {
+  const captured = new Map();
+  page.on("response", (response) => {
+    const url = response.url();
+    if (!/dms\.licdn\.com\/playlist\/vid\//.test(url)) {
+      return;
+    }
+    const contentType = response.headers()["content-type"] || "";
+    if (!/video\/iso\.segment|video\/mp4/i.test(contentType)) {
+      return;
+    }
+    const idMatch = /\/playlist\/vid\/v2\/([^/]+)\//.exec(url);
+    const indexMatch = /\/playlist\/vid\/v2\/[^/]+\/[^/]+\/[^/]+\/(\d+)\//.exec(url);
+    if (!idMatch || !indexMatch) {
+      return;
+    }
+    const id = idMatch[1];
+    const index = Number(indexMatch[1]);
+    if (!captured.has(id)) {
+      captured.set(id, new Map());
+    }
+    const byIndex = captured.get(id);
+    if (!byIndex.has(index)) {
+      byIndex.set(index, { index, url, contentType });
+    }
+  });
+  return captured;
+}
+
+/* Seek through each video so its player fetches every segment. Returns
+   { [videoId]: [{ index, url, contentType }, ...] } sorted by index. */
+async function captureVideoStreams(page, captured, skipVideoIds) {
+  const videos = await page.evaluate(() => {
+    const idOf = (video) => {
+      let node = video;
+      for (let depth = 0; depth < 10 && node; depth += 1, node = node.parentElement) {
+        const match = /\/([A-Za-z0-9_-]{10,})\/videocover/i.exec(node.innerHTML || "");
+        if (match) {
+          return match[1];
+        }
+      }
+      return "";
+    };
+    return Array.from(document.querySelectorAll("video")).map((video, i) => ({
+      i,
+      id: idOf(video),
+      duration: Number.isFinite(video.duration) ? Math.round(video.duration) : 0,
+    }));
+  });
+
+  for (const video of videos) {
+    if (!video.id || skipVideoIds.has(video.id)) {
+      continue;
+    }
+    if (video.duration > MAX_VIDEO_DURATION) {
+      log(
+        "Skipping video " +
+          video.id +
+          " (" +
+          video.duration +
+          "s) — longer than the " +
+          MAX_VIDEO_DURATION / 60 +
+          "-minute mirror limit; keeping its poster image."
+      );
+      continue;
+    }
+    log("Fetching video stream " + video.id + " (" + video.duration + "s)…");
+    const status = await page.evaluate(async (index) => {
+      const video = document.querySelectorAll("video")[index];
+      if (!video) {
+        return "missing";
+      }
+      video.muted = true;
+      try {
+        await video.play();
+      } catch (error) {
+        return "play failed";
+      }
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      const step = Math.max(3.5, duration / 80);
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      for (let position = 0; position < duration; position += step) {
+        video.currentTime = Math.min(position, Math.max(0, duration - 0.25));
+        const target = Math.min(position + step, duration);
+        const deadline = Date.now() + 4000;
+        while (Date.now() < deadline) {
+          await sleep(120);
+          const buffered = video.buffered.length
+            ? video.buffered.end(video.buffered.length - 1)
+            : 0;
+          if (video.readyState >= 2 && buffered >= target - 0.5) {
+            break;
+          }
+        }
+      }
+      video.pause();
+      return "ok";
+    }, video.i);
+    if (status !== "ok") {
+      log("Could not stream video " + video.id + " (" + status + ") — keeping its poster image.");
+    }
+  }
+
+  const result = {};
+  for (const [id, byIndex] of captured) {
+    result[id] = [...byIndex.values()].sort((a, b) => a.index - b.index);
+  }
+  return result;
+}
+
+async function collectPages(context, urls, dump, options) {
+  const settings = options || {};
   const pages = {};
   for (const [key, url] of Object.entries(urls)) {
     log("Reading " + key + ": " + url);
     const page = await context.newPage();
+    const captured = key === "posts" ? captureVideoSegments(page) : null;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(1500);
 
@@ -248,6 +367,18 @@ async function collectPages(context, urls, dump) {
 
     await expandSeeMore(page);
     await autoScroll(page);
+
+    /* Videos are streamed as signed fMP4 segments, so the only way to
+       mirror them is to let the player fetch the stream and collect the
+       segment URLs. Already-downloaded videos are skipped. */
+    if (captured && settings.captureVideos !== false) {
+      pages.__videoSegments = await captureVideoStreams(
+        page,
+        captured,
+        settings.skipVideoIds || new Set()
+      );
+    }
+
     pages[key] = await page.content();
     await page.close();
 
@@ -266,6 +397,35 @@ async function collectPages(context, urls, dump) {
    the page slow on GitHub Pages. Prefer the largest variant at or below
    this size, and only fall back to an oversized one if that is all there is. */
 const MAX_MEDIA_BYTES = 3 * 1024 * 1024;
+
+/* Videos are the owner's own posts, mirrored so they play on the site.
+   Keep each one small enough for GitHub Pages and quick on mobile; a
+   longer/larger video keeps its poster image and links to LinkedIn. */
+const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
+const MAX_VIDEO_DURATION = 10 * 60;
+
+async function fetchBinary(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        Origin: "https://www.linkedin.com",
+        Referer: "https://www.linkedin.com/",
+      },
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (!buffer.length) {
+      return null;
+    }
+    return { buffer, contentType: response.headers.get("content-type") };
+  } catch (_) {
+    return null;
+  }
+}
 
 async function fetchImage(url) {
   try {
@@ -325,6 +485,63 @@ async function downloadImage(url, nameOverride, alternates) {
     return null;
   }
   return saveImage(chosen.url, chosen.buffer, chosen.contentType, nameOverride);
+}
+
+/* Concatenate the captured fMP4 stream: segment index 1 is the init
+   segment (ftyp + moov) and 2..N are media fragments. The result is a
+   normal .mp4 that browsers play directly. A missing segment or an
+   oversized stream leaves the post on its poster image instead. */
+async function downloadVideo(videoId, segments, nameOverride) {
+  if (!videoId || !nameOverride || !Array.isArray(segments) || !segments.length) {
+    return null;
+  }
+
+  const byIndex = new Map();
+  for (const segment of segments) {
+    const index = Number(segment && segment.index);
+    if (Number.isInteger(index) && index >= 1 && !byIndex.has(index)) {
+      byIndex.set(index, segment.url);
+    }
+  }
+  const indexes = [...byIndex.keys()].sort((a, b) => a - b);
+  for (let i = 0; i < indexes.length; i += 1) {
+    if (indexes[i] !== i + 1) {
+      log("Video " + videoId + " is missing a stream segment — keeping its poster image.");
+      return null;
+    }
+  }
+
+  const parts = [];
+  let total = 0;
+  for (const index of indexes) {
+    const fetched = await fetchBinary(byIndex.get(index));
+    if (!fetched) {
+      log("Video " + videoId + " segment " + index + " failed to download — keeping its poster image.");
+      return null;
+    }
+    if (index === 1 && fetched.buffer.subarray(4, 8).toString("ascii") !== "ftyp") {
+      log("Video " + videoId + " stream is not an MP4 — keeping its poster image.");
+      return null;
+    }
+    total += fetched.buffer.length;
+    if (total > MAX_VIDEO_BYTES) {
+      log(
+        "Video " +
+          videoId +
+          " is larger than " +
+          MAX_VIDEO_BYTES / 1024 / 1024 +
+          " MB — keeping its poster image."
+      );
+      return null;
+    }
+    parts.push(fetched.buffer);
+  }
+
+  const buffer = Buffer.concat(parts);
+  fs.mkdirSync(IMAGE_DIR, { recursive: true });
+  fs.writeFileSync(path.join(IMAGE_DIR, nameOverride + ".mp4"), buffer);
+  log("Downloaded video " + videoId + " (" + (buffer.length / 1024 / 1024).toFixed(1) + " MB)");
+  return { type: "VIDEO", url: "assets/linkedin/" + nameOverride + ".mp4", videoId, alt: "" };
 }
 
 function ownerPathFrom(url) {
@@ -392,6 +609,7 @@ async function sync(pages, options) {
   const certificationsFound = dom.hasCertifications(certificationsHtml);
   const skills = dom.extractSkills(skillsHtml);
   const foundPosts = dom.extractPosts(postsHtml, { ownerPath, now: Date.now() });
+  const videoSegments = pages.__videoSegments || {};
 
   if (
     !scraped.name &&
@@ -522,19 +740,49 @@ async function sync(pages, options) {
        unique and sortable. */
     const mediaDigits = String(post.id).replace(/\D/g, "");
     const mediaName = mediaDigits ? "post-" + mediaDigits : "";
-    const previousMediaPath =
-      previous && previous.media && previous.media.url
-        ? path.join(ROOT, String(previous.media.url))
-        : "";
-    let media =
-      mediaName &&
-      previousMediaPath &&
-      String(previous.media.url).startsWith("assets/linkedin/" + mediaName + ".") &&
-      fs.existsSync(previousMediaPath)
-        ? previous.media
-        : null;
+    const previousMedia =
+      previous && previous.media && typeof previous.media === "object" ? previous.media : null;
+    const previousUrl =
+      previousMedia && typeof previousMedia.url === "string" ? previousMedia.url : "";
+    const previousPoster =
+      previousMedia && typeof previousMedia.poster === "string" ? previousMedia.poster : "";
+    const previousFilesExist =
+      Boolean(mediaName) &&
+      previousUrl.startsWith("assets/linkedin/" + mediaName + ".") &&
+      fs.existsSync(path.join(ROOT, previousUrl)) &&
+      (!previousPoster || fs.existsSync(path.join(ROOT, previousPoster)));
 
-    if (!media && post.imageUrl) {
+    let media = null;
+    if (previousFilesExist) {
+      if (post.videoId) {
+        /* Same video as last time and both files are present — reuse it
+           instead of re-downloading tens of megabytes every sync. */
+        if (previousMedia.type === "VIDEO" && previousMedia.videoId === post.videoId) {
+          media = previousMedia;
+        }
+      } else if (previousMedia.type !== "VIDEO") {
+        media = previousMedia;
+      }
+    }
+
+    if (!media && post.videoId) {
+      const poster = post.imageUrl
+        ? await downloadImage(post.imageUrl, mediaName || undefined, post.imageUrls)
+        : null;
+      const video = await downloadVideo(post.videoId, videoSegments[post.videoId], mediaName);
+      if (video) {
+        media = { ...video, poster: poster ? poster.url : "" };
+      } else if (poster) {
+        /* The stream could not be mirrored — show the poster with a link
+           to the post on LinkedIn instead of a plain image. */
+        media = { type: "VIDEO", url: "", poster: poster.url, videoId: post.videoId, alt: "" };
+      }
+      if (media) {
+        log("Mirrored video post " + post.permalink);
+      }
+    }
+
+    if (!media && !post.videoId && post.imageUrl) {
       media = await downloadImage(post.imageUrl, mediaName || undefined, post.imageUrls);
       if (media) {
         log("Downloaded image for " + post.permalink);
@@ -652,6 +900,24 @@ function parseOffline(directory) {
 
 /* ---------- main ---------- */
 
+/* Video ids that already have a mirrored .mp4 on disk. Their players are
+   not scrubbed again, so a routine sync stays quick. */
+function mirroredVideoIds() {
+  const data = readJson(path.join(DATA_DIR, "posts.json"), { posts: [] });
+  const ids = new Set();
+  for (const post of data.posts || []) {
+    const media = post && post.media;
+    if (!media || media.type !== "VIDEO" || !media.videoId) {
+      continue;
+    }
+    const url = typeof media.url === "string" ? media.url : "";
+    if (/^assets\/linkedin\/.+\.mp4$/i.test(url) && fs.existsSync(path.join(ROOT, url))) {
+      ids.add(media.videoId);
+    }
+  }
+  return ids;
+}
+
 async function main() {
   const parseDir = flagValue("--parse");
   if (parseDir) {
@@ -680,7 +946,8 @@ async function main() {
         certifications: url + "details/certifications/",
         posts: url + "recent-activity/all/",
       },
-      dump
+      dump,
+      { captureVideos: !login, skipVideoIds: mirroredVideoIds() }
     );
 
     if (login) {

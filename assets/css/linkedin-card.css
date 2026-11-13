@@ -128,11 +128,26 @@ linkedin-card {
   color: var(--accent, #6b8bff);
 }
 
+/* The About text is clamped to the first 6 lines; the link below it
+   opens the full profile on LinkedIn. max-height is a fallback for
+   browsers without -webkit-line-clamp. */
 .li-summary-text {
   margin: 0;
   max-width: 68ch;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+  max-height: calc(1.6em * 6);
+}
+
+.li-summary-more {
+  margin-top: 0.9rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.86rem;
 }
 
 .li-empty {
