@@ -9,19 +9,32 @@
     "company": "Carolina Cyber Network · Wilkes Community College"
   },
   "skills": [
+    "Cyber Threat Intelligence (CTI)",
+    "Threat & Vulnerability Management",
     "Network Security",
     "Network Administration",
     "Penetration Testing",
     "Python (Programming Language)",
     "Web Development",
     "Web Design",
-    "Information Technology",
-    "Cybersecurity",
-    "Cascading Style Sheets (CSS)",
-    "HTML5"
+    "Information Technology"
   ],
   "experience": [],
   "certifications": [
+    {
+      "title": "Threat Hunting with Firewalls",
+      "issuer": "LetsDefend",
+      "issued": "Oct 2026",
+      "expires": "",
+      "credentialUrl": "https://app.letsdefend.io//my-rewards/detail/7ab4c2ab-e903-461e-8b38-df416970d54d"
+    },
+    {
+      "title": "Wireless Security",
+      "issuer": "LetsDefend",
+      "issued": "Nov 2026",
+      "expires": "",
+      "credentialUrl": "https://app.letsdefend.io//my-rewards/detail/3bf8063a-066d-4d9a-a4ff-5cfeae5ae55f"
+    },
     {
       "title": "CCNA: Introduction to Networks",
       "issuer": "Cisco Networking Academy",
